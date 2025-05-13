@@ -1,0 +1,10 @@
+{
+    "fecha_hora": "2025-05-13 14:22:11",
+    "productos": [
+        {"id": 1, "nombre": "Coca-Cola", "cantidad": 2, "precio_unitario": 850}
+    ],
+    "total": 1700,
+    "pago": 2000,
+    "vuelto": 300,
+    "empleado_id": 3
+}

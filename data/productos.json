@@ -1,0 +1,23 @@
+[
+    {
+        "id": 1,
+        "nombre": "Galletitas Oreo",
+        "precio": 500,
+        "stock_actual": 18,
+        "stock_minimo": 5
+    },
+    {
+        "id": 2,
+        "nombre": "Agua 500ml",
+        "precio": 300,
+        "stock_actual": 8,
+        "stock_minimo": 4
+    },
+    {
+        "id": 3,
+        "nombre": "Coca-Cola 1.5L",
+        "precio": 1200,
+        "stock_actual": 9,
+        "stock_minimo": 3
+    }
+]
