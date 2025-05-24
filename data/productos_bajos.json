@@ -1,0 +1,9 @@
+[
+    {
+        "id": "1",
+        "nombre": "El diablo loco",
+        "precio": 200.0,
+        "stock_actual": 191,
+        "stock_minimo": 200
+    }
+]

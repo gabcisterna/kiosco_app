@@ -1,10 +1,479 @@
-{
-    "fecha_hora": "2025-05-13 14:22:11",
-    "productos": [
-        {"id": 1, "nombre": "Coca-Cola", "cantidad": 2, "precio_unitario": 850}
-    ],
-    "total": 1700,
-    "pago": 2000,
-    "vuelto": 300,
-    "empleado_id": 3
-}
+[
+    {
+        "fecha": "2025-05-21 22:09:21",
+        "empleado_id": "2",
+        "cliente_dni": "12121",
+        "forma_pago": "deuda",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-21 22:11:25",
+        "empleado_id": "2",
+        "cliente_dni": "121212231",
+        "forma_pago": "debito",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-21 22:11:47",
+        "empleado_id": "2",
+        "cliente_dni": "123",
+        "forma_pago": "debito",
+        "total": 900,
+        "productos": [
+            {
+                "id": "3",
+                "nombre": "Papas Fritas 100g",
+                "cantidad": 1,
+                "subtotal": 900
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-21 22:12:01",
+        "empleado_id": "2",
+        "cliente_dni": "123",
+        "forma_pago": "deuda",
+        "total": 900,
+        "productos": [
+            {
+                "id": "3",
+                "nombre": "Papas Fritas 100g",
+                "cantidad": 1,
+                "subtotal": 900
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-21 22:48:15",
+        "empleado_id": "2",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-21 22:50:29",
+        "empleado_id": "2",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-21 23:39:59",
+        "empleado_id": "2",
+        "cliente_dni": "45087715",
+        "forma_pago": "deuda",
+        "total": 100.0,
+        "productos": [
+            {
+                "id": "4",
+                "nombre": "Producto 4",
+                "cantidad": 1,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-21 23:50:22",
+        "empleado_id": "2",
+        "cliente_dni": "12345678",
+        "forma_pago": "deuda",
+        "total": 4.0,
+        "productos": [
+            {
+                "id": "6",
+                "nombre": "asdas",
+                "cantidad": 1,
+                "subtotal": 4.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 00:06:47",
+        "empleado_id": "1",
+        "cliente_dni": "123",
+        "forma_pago": "deuda",
+        "total": 900,
+        "productos": [
+            {
+                "id": "3",
+                "nombre": "Papas Fritas 100g",
+                "cantidad": 1,
+                "subtotal": 900
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 00:07:33",
+        "empleado_id": "1",
+        "cliente_dni": "123",
+        "forma_pago": "deuda",
+        "total": 200.0,
+        "productos": [
+            {
+                "id": "1",
+                "nombre": "El diablo loco",
+                "cantidad": 1,
+                "subtotal": 200.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 00:09:26",
+        "empleado_id": "1",
+        "cliente_dni": "123",
+        "forma_pago": "deuda",
+        "total": 200.0,
+        "productos": [
+            {
+                "id": "1",
+                "nombre": "El diablo loco",
+                "cantidad": 1,
+                "subtotal": 200.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 00:10:03",
+        "empleado_id": "1",
+        "cliente_dni": "456",
+        "forma_pago": "debito",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 00:17:27",
+        "empleado_id": "1",
+        "cliente_dni": "12345678",
+        "forma_pago": "deuda",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 00:17:52",
+        "empleado_id": "1",
+        "cliente_dni": "12345678",
+        "forma_pago": "deuda",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 09:23:04",
+        "empleado_id": "1",
+        "cliente_dni": "23",
+        "forma_pago": "deuda",
+        "total": 200.0,
+        "productos": [
+            {
+                "id": "1",
+                "nombre": "El diablo loco",
+                "cantidad": 1,
+                "subtotal": 200.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 09:27:21",
+        "empleado_id": "1",
+        "cliente_dni": "23",
+        "forma_pago": "deuda",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 09:30:03",
+        "empleado_id": "1",
+        "cliente_dni": "23",
+        "forma_pago": "deuda",
+        "total": 900,
+        "productos": [
+            {
+                "id": "3",
+                "nombre": "Papas Fritas 100g",
+                "cantidad": 1,
+                "subtotal": 900
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 09:37:18",
+        "empleado_id": "1",
+        "cliente_dni": "5",
+        "forma_pago": "deuda",
+        "total": 100.0,
+        "productos": [
+            {
+                "id": "4",
+                "nombre": "Salchipapas",
+                "cantidad": 1,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 09:46:49",
+        "empleado_id": "1",
+        "cliente_dni": "5",
+        "forma_pago": "deuda",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 09:49:45",
+        "empleado_id": "1",
+        "cliente_dni": "5",
+        "forma_pago": "deuda",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 10:00:53",
+        "empleado_id": "1",
+        "cliente_dni": "1",
+        "forma_pago": "deuda",
+        "total": 200.0,
+        "productos": [
+            {
+                "id": "1",
+                "nombre": "El diablo loco",
+                "cantidad": 1,
+                "subtotal": 200.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 10:32:04",
+        "empleado_id": "1",
+        "cliente_dni": "2",
+        "forma_pago": "efectivo",
+        "total": 2600.0,
+        "productos": [
+            {
+                "id": "3",
+                "nombre": "Papas Fritas 100g",
+                "cantidad": 2,
+                "subtotal": 1800
+            },
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            },
+            {
+                "id": "4",
+                "nombre": "Salchipapas",
+                "cantidad": 1,
+                "subtotal": 100.0
+            },
+            {
+                "id": "1",
+                "nombre": "El diablo loco",
+                "cantidad": 1,
+                "subtotal": 200.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 10:40:01",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 1700.0,
+        "productos": [
+            {
+                "id": "1",
+                "nombre": "El diablo loco",
+                "cantidad": 1,
+                "subtotal": 200.0
+            },
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            },
+            {
+                "id": "3",
+                "nombre": "Papas Fritas 100g",
+                "cantidad": 1,
+                "subtotal": 900
+            },
+            {
+                "id": "4",
+                "nombre": "Salchipapas",
+                "cantidad": 1,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 10:53:07",
+        "empleado_id": "1",
+        "cliente_dni": "2",
+        "forma_pago": "deuda",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 10:53:43",
+        "empleado_id": "1",
+        "cliente_dni": "2",
+        "forma_pago": "debito",
+        "total": 900,
+        "productos": [
+            {
+                "id": "3",
+                "nombre": "Papas Fritas 100g",
+                "cantidad": 1,
+                "subtotal": 900
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 10:57:08",
+        "empleado_id": "1",
+        "cliente_dni": "2",
+        "forma_pago": "debito",
+        "total": 500,
+        "productos": [
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 11:09:29",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 200.0,
+        "productos": [
+            {
+                "id": "1",
+                "nombre": "El diablo loco",
+                "cantidad": 1,
+                "subtotal": 200.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 11:27:00",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 200.0,
+        "productos": [
+            {
+                "id": "1",
+                "nombre": "El diablo loco",
+                "cantidad": 1,
+                "subtotal": 200.0
+            }
+        ]
+    },
+    {
+        "fecha": "2025-05-22 11:29:07",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 700.0,
+        "productos": [
+            {
+                "id": "1",
+                "nombre": "El diablo loco",
+                "cantidad": 1,
+                "subtotal": 200.0
+            },
+            {
+                "id": "2",
+                "nombre": "Alfajor de Chocolate",
+                "cantidad": 1,
+                "subtotal": 500
+            }
+        ]
+    }
+]
