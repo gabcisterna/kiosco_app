@@ -186,3 +186,8 @@ def listar_productos_con_stock_bajo():
     """Devuelve lista de productos con stock menor al mínimo"""
     productos = cargar_productos_bajos()
     return productos
+
+def buscar_productos_por_nombre(parcial):
+    with open("data/productos.json", "r", encoding="utf-8") as f:
+        productos = json.load(f)
+    return [p for p in productos if parcial.lower() in p["nombre"].lower()]
