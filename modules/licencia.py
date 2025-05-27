@@ -40,5 +40,6 @@ def activar(metodo="mensual"):
             f.write(hash_string(valor))
 
 
+if __name__ == "__main__":
+    print("Clave de este mes:", generar_clave_mensual())
 
-print("Clave de este mes:", generar_clave_mensual())

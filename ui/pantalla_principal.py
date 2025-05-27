@@ -20,6 +20,9 @@ class PantallaCaja:
         self.master.configure(bg="#f0f4f8")
         self.master.attributes('-fullscreen', True)
         self.master.bind("<Escape>", lambda e: self.master.attributes("-fullscreen", False))
+        self.master.bind("<Return>", self.agregar_producto)
+        self.master.bind("<F2>", lambda event: self.confirmar_venta())
+
 
         self.carrito = []
         self.empleado = obtener_empleado_activo()
@@ -32,27 +35,44 @@ class PantallaCaja:
         main_frame = tk.Frame(master, bg="#f0f4f8", padx=20, pady=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.crear_botones_admin(main_frame)
-        self.crear_top_bar(main_frame)
-        self.crear_entrada_producto(main_frame)
-        self.crear_lista_productos(main_frame)
-        self.crear_botones_lista(main_frame)
-        self.crear_total_y_vuelto(main_frame)
-        self.crear_info_pago(main_frame)
-        self.crear_boton_finalizar(main_frame)
-        self.mostrar_productos_stock_bajo(main_frame)
+        self.crear_barra_superior_completa(main_frame)
 
-        self.cambiar_forma_pago(self.forma_pago_var.get())
-        self.master.bind("<Return>", self.agregar_producto)
-        self.master.bind("<F2>", lambda e: self.confirmar_venta())
+        # Dividir en dos columnas
+        self.izquierda_frame = tk.Frame(main_frame, bg="#f0f4f8")
+        self.izquierda_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        self.derecha_frame = tk.Frame(main_frame, bg="#f0f4f8")
+        self.derecha_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(20, 0))
+
+        # Parte izquierda
+        self.crear_lista_productos(self.izquierda_frame)
+        self.crear_entrada_producto(self.izquierda_frame)
+        self.mostrar_productos_stock_bajo(self.izquierda_frame)
+        # Eliminamos la creación de botones aquí:
+        # self.crear_botones_y_finalizar(self.izquierda_frame)
+
+        # Parte derecha
+        self.crear_info_pago(self.derecha_frame)
+        self.crear_total_y_vuelto(self.derecha_frame)
+
+        # Ahora los botones van en la derecha, debajo del total y vuelto:
+        self.crear_botones_y_finalizar(self.derecha_frame)
 
 
-    def crear_botones_admin(self, frame):
-        admin_frame = tk.Frame(frame, bg="#dce6f0", pady=10, bd=1, relief="ridge")
-        admin_frame.pack(fill=tk.X, pady=(0, 15))
+
+    def crear_barra_superior_completa(self, frame):
+        barra_superior = tk.Frame(frame, bg="#dce6f0", pady=10, padx=20, bd=1, relief="ridge")
+        barra_superior.pack(fill=tk.X, pady=(0, 15))
+
+        # Empleado activo (izquierda)
+        tk.Label(barra_superior, text=f"Empleado activo: {self.empleado['nombre']}",
+                font=self.font_labels, bg="#dce6f0", fg="#333").pack(side=tk.LEFT)
+
+        # Botones administración (centro)
+        botones_frame = tk.Frame(barra_superior, bg="#dce6f0")
+        botones_frame.pack(side=tk.LEFT, expand=True)
 
         botones = []
-
         if self.empleado["puesto"] == "Dueño":
             botones = [
                 ("Productos", self.abrir_popup_productos),
@@ -75,108 +95,127 @@ class PantallaCaja:
 
         for texto, comando in botones:
             tk.Button(
-                admin_frame, text=texto, command=comando,
+                botones_frame, text=texto, command=comando,
                 bg="#4a90e2", fg="white", font=self.font_labels,
                 relief="flat", padx=15, pady=7
-            ).pack(side=tk.LEFT, padx=8)
+            ).pack(side=tk.LEFT, padx=5)
 
-    def crear_top_bar(self, frame):
-        top_frame = tk.Frame(frame, bg="#f0f4f8")
-        top_frame.pack(fill=tk.X, pady=(0, 20))
-        tk.Label(top_frame, text=f"Empleado activo: {self.empleado['nombre']}",
-                 font=self.font_labels, bg="#f0f4f8", fg="#333").pack(side=tk.LEFT, expand=True, fill=tk.X)
-        tk.Button(top_frame, text="Cerrar sesión", command=self.cerrar_sesion_y_volver_al_login,
-                  bg="#e94e4e", fg="white", font=self.font_labels, relief="flat", padx=12, pady=7).pack(side=tk.RIGHT)
+        # Cerrar sesión (derecha)
+        tk.Button(barra_superior, text="Cerrar sesión", command=self.cerrar_sesion_y_volver_al_login,
+                bg="#e94e4e", fg="white", font=self.font_labels,
+                relief="flat", padx=12, pady=7).pack(side=tk.RIGHT)
+
 
     def crear_entrada_producto(self, frame):
-        entrada_frame = tk.Frame(frame, bg="#f0f4f8")
-        entrada_frame.pack(pady=(0, 15), fill=tk.X)
+        sub_frame = tk.Frame(frame, bg="#f0f4f8")
+        sub_frame.pack(pady=10)
 
-        tk.Label(entrada_frame, text="ID o nombre del producto:", font=self.font_labels, bg="#f0f4f8", fg="#555").pack(side=tk.LEFT)
+        # --- ID o nombre del producto ---
+        tk.Label(sub_frame, text="🔍 ID o nombre:", font=self.font_labels, bg="#f0f4f8", fg="#333").grid(row=0, column=0, sticky="w", padx=(0, 5))
 
-        self.entrada_id = tk.Entry(entrada_frame, width=30, font=self.font_labels, relief="solid", bd=1)
-        self.entrada_id.pack(side=tk.LEFT, padx=10)
+        self.entrada_id = tk.Entry(sub_frame, font=self.font_labels, relief="solid", bd=2, width=25, bg="white")
+        self.entrada_id.grid(row=0, column=1, padx=(0, 20))
         self.entrada_id.bind("<KeyRelease>", self.autocompletar_producto)
-        self.entrada_id.bind("<Return>", self.agregar_producto)
 
-        # Lista desplegable para autocompletar
-        self.lista_sugerencias = tk.Listbox(entrada_frame, font=self.font_pequena, height=5, relief="solid", bd=1)
-        self.lista_sugerencias.pack_forget()
+        # Lista de sugerencias (se crea pero se oculta hasta que haya sugerencias)
+        self.lista_sugerencias = tk.Listbox(sub_frame, font=self.font_pequena, height=5, bg="white", fg="black", relief="solid", bd=1)
+        self.lista_sugerencias.grid(row=1, column=1, sticky="w", padx=(0, 20), pady=(0, 5))
         self.lista_sugerencias.bind("<<ListboxSelect>>", self.seleccionar_sugerencia)
+        self.lista_sugerencias.grid_remove()  # Oculta inicialmente
 
-        tk.Label(entrada_frame, text="Cantidad:", font=self.font_labels, bg="#f0f4f8", fg="#555").pack(side=tk.LEFT)
-        self.entrada_cantidad = tk.Entry(entrada_frame, width=5, font=self.font_labels, relief="solid", bd=1)
-        self.entrada_cantidad.insert(0, "1")
-        self.entrada_cantidad.pack(side=tk.LEFT, padx=10)
+        # --- Cantidad ---
+        tk.Label(sub_frame, text="🔢 Cantidad:", font=self.font_labels, bg="#f0f4f8", fg="#333").grid(row=0, column=2, sticky="w", padx=(0, 5))
 
-        
+        self.entrada_cantidad = tk.Entry(sub_frame, font=self.font_labels, relief="solid", bd=2, width=10, bg="white")
+        self.entrada_cantidad.grid(row=0, column=3, padx=(0, 20))
+        self.entrada_cantidad.insert(0, "1")  # Valor por defecto: 1
+
+        # --- Botón para agregar al carrito ---
+        btn_agregar = tk.Button(sub_frame, text="➕ Agregar", command=self.agregar_producto,
+                                font=self.font_labels, bg="#4CAF50", fg="white", relief="flat", padx=10, pady=5)
+        btn_agregar.grid(row=0, column=4)
+
+
 
 
     def crear_lista_productos(self, frame):
+        # Frame que contiene carrito y stock bajo
         lista_y_stock_frame = tk.Frame(frame, bg="#f0f4f8")
         lista_y_stock_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
 
-        # Frame para la lista de productos agregados
-        lista_frame = tk.Frame(lista_y_stock_frame, bg="#f0f4f8")
-        lista_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        # ----- COLUMNA IZQUIERDA: Carrito -----
+        carrito_frame = tk.Frame(lista_y_stock_frame, bg="#f0f4f8")
+        carrito_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+
+        # Título como en stock bajo
+        tk.Label(carrito_frame, text="Productos en el carrito", bg="#f0f4f8",
+                fg="#333", font=("Segoe UI", 12, "bold")).pack(anchor="w", padx=5, pady=(0, 5))
+
+        # Listbox con borde visual limpio
+        lista_frame = tk.Frame(carrito_frame, bg="#f0f4f8", bd=1, relief="solid")
+        lista_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
 
         self.lista_productos = tk.Listbox(lista_frame, font=self.font_lista, height=15,
                                         bg="white", fg="#222", selectbackground="#4a90e2",
-                                        activestyle="none", relief="solid", bd=1)
-        self.lista_productos.pack(fill=tk.BOTH, expand=True)
+                                        activestyle="none", relief="flat", bd=0)
+        self.lista_productos.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
-        # Frame para productos con stock bajo
+        # Limpiar cualquier contenido previo por seguridad (puede prevenir "residuos")
+        self.lista_productos.delete(0, tk.END)
+
+        # ----- COLUMNA DERECHA: Stock bajo -----
         self.stock_bajo_frame = tk.Frame(lista_y_stock_frame, bg="#f0f4f8", width=300)
         self.stock_bajo_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(15, 0))
 
 
-    def crear_botones_lista(self, frame):
+
+    def crear_botones_y_finalizar(self, frame):
+        # --- Acciones ---
+        tk.Label(frame, text="Acciones", font=("Segoe UI", 16, "bold"), bg="#f0f4f8", fg="#333").pack(anchor="w", padx=10, pady=(10, 5))
+
         botones_frame = tk.Frame(frame, bg="#f0f4f8")
-        botones_frame.pack(pady=(0, 15))
+        botones_frame.pack(pady=(10, 10))
+
         tk.Button(botones_frame, text="Modificar cantidad", command=self.cambiar_cantidad_seleccionada,
-                  bg="#ffa500", fg="white", font=self.font_labels, relief="flat", padx=15, pady=7).pack(side=tk.LEFT, padx=8)
+                bg="#ffa500", fg="white", font=self.font_labels, relief="flat", padx=15, pady=7).pack(side=tk.LEFT, padx=5)
+
         tk.Button(botones_frame, text="Eliminar producto", command=self.eliminar_producto_seleccionado,
-                  bg="#e94e4e", fg="white", font=self.font_labels, relief="flat", padx=15, pady=7).pack(side=tk.LEFT, padx=8)
+                bg="#e94e4e", fg="white", font=self.font_labels, relief="flat", padx=15, pady=7).pack(side=tk.LEFT, padx=5)
+
+        tk.Button(botones_frame, text="🛒 FINALIZAR VENTA (F2)", command=self.confirmar_venta,
+                bg="#2e7d32", fg="white", font=self.font_labels, relief="flat", padx=15, pady=7).pack(side=tk.LEFT, padx=5)
+
+
 
     def crear_info_pago(self, frame):
-        info_pago_frame = tk.LabelFrame(frame, text="Información de pago", bg="#ffffff", fg="#333", font=self.font_labels, padx=10, pady=10)
-        info_pago_frame.pack(fill=tk.X, pady=(10, 20), padx=10)
+        # --- Datos del cliente ---
+        tk.Label(frame, text="Datos del cliente", font=("Segoe UI", 16, "bold"), bg="#f0f4f8", fg="#333").pack(anchor="w", padx=10, pady=(0, 5))
 
-        # Subframe para entradas de datos del cliente
-        datos_cliente_frame = tk.Frame(info_pago_frame, bg="#ffffff")
-        datos_cliente_frame.grid(row=0, column=0, sticky="w", padx=10)
+        # DATOS DEL CLIENTE
+        cliente_frame = tk.LabelFrame(frame, text="Datos del cliente", bg="#ffffff", fg="#333", font=self.font_labels, padx=10, pady=10)
+        cliente_frame.pack(fill=tk.X, pady=(10, 10), padx=10)
 
-        # DNI
-        self.label_dni = tk.Label(datos_cliente_frame, text="DNI del cliente (opcional):", font=self.font_pequena, bg="#ffffff", fg="#555")
-        self.label_dni.grid(row=0, column=0, sticky="w")
-        self.entry_dni = tk.Entry(datos_cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=20)
+        self.label_dni = tk.Label(cliente_frame, text="DNI (opcional):", font=self.font_pequena, bg="#ffffff", fg="#555")
+        self.label_dni.grid(row=0, column=0, sticky="w", padx=(0, 10))
+        self.entry_dni = tk.Entry(cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=20)
         self.entry_dni.grid(row=1, column=0, padx=(0, 20), pady=(0, 10))
 
-        # Nombre
-        self.label_nombre = tk.Label(datos_cliente_frame, text="Nombre del cliente:", font=self.font_pequena, bg="#ffffff", fg="#555")
+        self.label_nombre = tk.Label(cliente_frame, text="Nombre (opcional):", font=self.font_pequena, bg="#ffffff", fg="#555")
         self.label_nombre.grid(row=0, column=1, sticky="w")
-        self.entry_nombre = tk.Entry(datos_cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=25)
-        self.entry_nombre.grid(row=1, column=1, padx=(0, 20), pady=(0, 10))
+        self.entry_nombre = tk.Entry(cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=25)
+        self.entry_nombre.grid(row=1, column=1, padx=(0, 10), pady=(0, 10))
 
-        # Pago en efectivo
-        self.label_pago = tk.Label(datos_cliente_frame, text="Con cuánto paga:", font=self.font_pequena, bg="#ffffff", fg="#555")
-        self.label_pago.grid(row=0, column=2, sticky="w")
-        self.entry_pago = tk.Entry(datos_cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=15)
-        self.entry_pago.grid(row=1, column=2, padx=(0, 20), pady=(0, 10))
-        self.entry_pago.bind("<KeyRelease>", self.actualizar_vuelto)
+        # FORMA DE PAGO
+        forma_frame = tk.LabelFrame(frame, text="Forma de pago", bg="#ffffff", fg="#333", font=self.font_labels, padx=10, pady=10)
+        forma_frame.pack(fill=tk.X, pady=(0, 10), padx=10)
 
-        # Forma de pago
-        forma_pago_frame = tk.Frame(info_pago_frame, bg="#ffffff")
-        forma_pago_frame.grid(row=1, column=0, sticky="w", pady=(10, 0))
-
-        tk.Label(forma_pago_frame, text="Forma de pago:", font=self.font_pequena, bg="#ffffff", fg="#555").pack(side=tk.LEFT)
-
+        # Botones
         self.forma_pago_var = tk.StringVar(value="efectivo")
         formas = [("Efectivo", "efectivo"), ("Débito", "debito"), ("Deuda", "deuda")]
 
         self.botones_pago = {}
         for texto, valor in formas:
-            btn = tk.Button(forma_pago_frame, text=texto, font=self.font_pequena,
+            btn = tk.Button(forma_frame, text=texto, font=self.font_pequena,
                             bg="#e0e0e0" if self.forma_pago_var.get() != valor else "#4a90e2",
                             fg="black" if self.forma_pago_var.get() != valor else "white",
                             relief="solid", bd=1, padx=10, pady=5,
@@ -184,21 +223,30 @@ class PantallaCaja:
             btn.pack(side=tk.LEFT, padx=5)
             self.botones_pago[valor] = btn
 
+        # Campo "Con cuánto paga"
+        self.label_pago = tk.Label(forma_frame, text="Con cuánto paga:", font=self.font_pequena, bg="#ffffff", fg="#555")
+        self.label_pago.pack(side=tk.LEFT, padx=(20, 5))
+        self.entry_pago = tk.Entry(forma_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=10)
+        self.entry_pago.pack(side=tk.LEFT)
+        self.entry_pago.bind("<KeyRelease>", self.actualizar_vuelto)
+
+
     def autocompletar_producto(self, event=None):
         texto = self.entrada_id.get().strip()
-        self.lista_sugerencias.pack_forget()
 
         if texto.isnumeric() or texto == "":
-            return  # Si es un ID o vacío, no sugerimos
+            self.lista_sugerencias.grid_remove()
+            return
 
         sugerencias = buscar_productos_por_nombre(texto)
         if sugerencias:
             self.lista_sugerencias.delete(0, tk.END)
             for prod in sugerencias[:10]:
                 self.lista_sugerencias.insert(tk.END, f"{prod['id']} - {prod['nombre']}")
-            self.lista_sugerencias.pack(side=tk.LEFT, padx=(10, 0))
+            self.lista_sugerencias.grid()
         else:
-            self.lista_sugerencias.pack_forget()
+            self.lista_sugerencias.grid_remove()
+
 
 
     def seleccionar_sugerencia(self, event):
@@ -209,8 +257,9 @@ class PantallaCaja:
         prod_id = seleccion.split(" - ")[0]
         self.entrada_id.delete(0, tk.END)
         self.entrada_id.insert(0, prod_id)
-        self.lista_sugerencias.pack_forget()
+        self.lista_sugerencias.grid_remove()
         self.entrada_cantidad.focus_set()
+
 
     def seleccionar_forma_pago(self, valor):
         self.forma_pago_var.set(valor)
@@ -223,22 +272,21 @@ class PantallaCaja:
 
 
     def crear_total_y_vuelto(self, frame):
-        self.totales_frame = tk.Frame(frame, bg="#f0f4f8")
-        self.totales_frame.pack(fill=tk.X, pady=(0, 10))
+        # --- Resumen de pago ---
+        tk.Label(frame, text="Resumen de pago", font=("Segoe UI", 16, "bold"), bg="#f0f4f8", fg="#333").pack(anchor="w", padx=10, pady=(10, 5))
 
-        self.total_label = tk.Label(self.totales_frame, text="Total: $0.00",
-                                    font=("Segoe UI", 18, "bold"), bg="#f0f4f8", fg="#2e7d32")
-        self.total_label.pack(side=tk.LEFT, padx=(10, 30))
+        resumen_frame = tk.LabelFrame(frame, text="Resumen de pago", bg="#ffffff", fg="#333", font=self.font_labels, padx=10, pady=10)
+        resumen_frame.pack(fill=tk.X, padx=10)
 
-        self.vuelto_label = tk.Label(self.totales_frame, text="Vuelto: $0.00",
-                                    font=("Segoe UI", 16), bg="#f0f4f8", fg="#c62828")
-        self.vuelto_label.pack(side=tk.LEFT)
+        self.total_label = tk.Label(resumen_frame, text="Total: $0.00",
+                            font=("Segoe UI", 24, "bold"), bg="#ffffff", fg="#2e7d32")
+        self.total_label.pack(anchor="w", pady=(0, 10))
+
+        self.vuelto_label = tk.Label(resumen_frame, text="Vuelto: $0.00",
+                                    font=("Segoe UI", 20), bg="#ffffff", fg="#c62828")
+        self.vuelto_label.pack(anchor="w")
 
 
-    def crear_boton_finalizar(self, frame):
-        self.btn_venta = tk.Button(frame, text="F2 Para Finalizar venta", command=self.confirmar_venta,
-                                   bg="#388e3c", fg="white", font=("Segoe UI", 18, "bold"), relief="flat", padx=20, pady=15)
-        self.btn_venta.pack(fill=tk.X)
 
     def mostrar_productos_stock_bajo(self, frame):
         stock_frame = tk.LabelFrame(self.stock_bajo_frame, text="Stock bajo",
@@ -260,24 +308,38 @@ class PantallaCaja:
 
 
     def cambiar_forma_pago(self, forma):
-        if forma in ["deuda", "debito"]:
-            self.entry_pago.grid_remove()
-            self.label_pago.grid_remove()
-            self.vuelto_label.pack_forget()
-            self.label_dni.config(text="DNI del cliente (obligatorio):")
-            self.label_nombre.config(text="Nombre del cliente (obligatorio):")
-            self.entry_dni.config(bg="white")
-            self.entry_nombre.config(bg="white")
-        else:
-            self.label_pago.grid()
-            self.entry_pago.grid()
-            if not self.vuelto_label.winfo_ismapped():
-                self.vuelto_label.pack(side=tk.LEFT)
+        self.forma_pago_var.set(forma)
+
+        # Cambiar estilos de botones
+        for v, btn in self.botones_pago.items():
+            if v == forma:
+                btn.config(bg="#4a90e2", fg="white")
+            else:
+                btn.config(bg="#e0e0e0", fg="black")
+
+        if forma == "efectivo":
+            # Mostrar campo de pago y vuelto
+            self.label_pago.pack(side=tk.LEFT, padx=(20, 5))
+            self.entry_pago.pack(side=tk.LEFT)
+            self.entry_pago.configure(state="normal")
             self.label_dni.config(text="DNI del cliente (opcional):")
             self.label_nombre.config(text="Nombre del cliente (opcional):")
             self.entry_dni.config(bg="#f0f4f8")
             self.entry_nombre.config(bg="#f0f4f8")
+            if not self.vuelto_label.winfo_ismapped():
+                self.vuelto_label.pack(anchor="w")
+            self.actualizar_vuelto()
 
+        else:
+            # Ocultar campo de pago y vuelto
+            self.label_dni.config(text="DNI del cliente (obligatorio):")
+            self.label_nombre.config(text="Nombre del cliente (obligatorio):")
+            self.entry_dni.config(bg="white")
+            self.entry_nombre.config(bg="white")
+            self.label_pago.pack_forget()
+            self.entry_pago.pack_forget()
+            self.vuelto_label.pack_forget()
+            self.entry_pago.delete(0, tk.END)
 
 
     # Resto de métodos sin cambios...
@@ -288,20 +350,33 @@ class PantallaCaja:
             self.tree_stock_bajo.insert("", tk.END, values=(producto["id"], producto["nombre"], producto["stock_actual"]))
 
     def agregar_producto(self, event=None):
+        # Verifica desde qué widget vino el Enter
+        if event:
+            if event.widget not in [self.entrada_id, self.entrada_cantidad]:
+                return  # No hacer nada si Enter se presionó fuera de estos dos campos
+
         id_texto = self.entrada_id.get().strip()
         cant_texto = self.entrada_cantidad.get().strip()
-        if not id_texto.isdigit() or not cant_texto.isdigit():
-            messagebox.showerror("Error", "ID y cantidad deben ser numéricos")
+
+        if not id_texto.isdigit():
+            return  # No mostrar error si aún está escribiendo o es autocompletado
+
+        if not cant_texto.isdigit():
+            messagebox.showerror("Error", "La cantidad debe ser numérica")
             return
+
         prod_id = int(id_texto)
         cantidad = int(cant_texto)
+
         if cantidad <= 0:
             messagebox.showerror("Error", "La cantidad debe ser mayor a cero")
             return
+
         producto = buscar_producto(prod_id)
         if not producto:
             messagebox.showerror("Error", f"No se encontró producto con ID {prod_id}")
             return
+
         for p in self.carrito:
             if p["id"] == prod_id:
                 p["cantidad"] += cantidad
@@ -309,12 +384,20 @@ class PantallaCaja:
                 self.actualizar_total()
                 self.entrada_id.delete(0, tk.END)
                 return
-        self.carrito.append({"id": prod_id, "nombre": producto["nombre"], "precio": producto["precio"], "cantidad": cantidad})
+
+        self.carrito.append({
+            "id": prod_id,
+            "nombre": producto["nombre"],
+            "precio": producto["precio"],
+            "cantidad": cantidad
+        })
+
         self.actualizar_lista()
         self.actualizar_total()
         self.entrada_id.delete(0, tk.END)
         self.entrada_cantidad.delete(0, tk.END)
         self.entrada_cantidad.insert(0, "1")
+
 
     def actualizar_lista(self):
         self.lista_productos.delete(0, tk.END)
@@ -363,11 +446,11 @@ class PantallaCaja:
     def limpiar_despues_de_venta(self):
         self.carrito.clear()
         self.lista_productos.delete(0, tk.END)
-        self.total_label.config(text="Total: $0.00")
-        self.vuelto_label.config(text="Vuelto: $0.00")
         self.actualizar_stock_bajo()
         self.forma_pago_var.set("efectivo")
         self.seleccionar_forma_pago("efectivo")
+        self.total_label.config(text="Total: $0.00")
+        self.vuelto_label.config(text="Vuelto: $0.00")
         self.entry_pago.delete(0, tk.END)
         self.entry_dni.delete(0, tk.END)
         self.entry_nombre.delete(0, tk.END)
