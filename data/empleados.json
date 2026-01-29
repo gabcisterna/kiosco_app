@@ -1,18 +1,1 @@
-[
-    {
-        "id": "1",
-        "nombre": "Gabriel",
-        "correo": "cisternagabriel81@gmail.com",
-        "puesto": "Dueño",
-        "usuario": "Gabriel",
-        "activo": false
-    },
-    {
-        "id": "2",
-        "nombre": "pepe",
-        "correo": "pepe@123",
-        "puesto": "Cajero",
-        "usuario": "pepe",
-        "activo": false
-    }
-]
+[]
