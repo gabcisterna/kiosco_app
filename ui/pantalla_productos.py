@@ -139,28 +139,128 @@ class PantallaProductos:
     def editar_producto_ui(self):
         seleccionado = self.tree.focus()
         if not seleccionado:
+            messagebox.showwarning("Atención", "Seleccioná un producto para editar.")
             return
+
         producto_id = int(seleccionado)
         producto = buscar_producto(producto_id)
         if not producto:
+            messagebox.showerror("Error", "No se encontró el producto.")
             return
 
-        try:
+        self.abrir_form_edicion(producto_id, producto)
+
+
+    def abrir_form_edicion(self, producto_id: int, producto: dict):
+        win = tk.Toplevel(self.master)
+        win.title(f"Editar producto #{producto_id}")
+        win.configure(bg="#f5f5f5")
+        win.resizable(False, False)
+        win.transient(self.master)
+        win.grab_set()
+
+        container = tk.Frame(win, bg="#f5f5f5")
+        container.pack(padx=20, pady=15, fill=tk.BOTH, expand=True)
+
+        titulo = tk.Label(
+            container,
+            text=f"Editar producto #{producto_id}",
+            bg="#f5f5f5",
+            font=("Segoe UI", 12, "bold")
+        )
+        titulo.grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
+
+        # Vars del formulario (precargadas)
+        nombre_var = tk.StringVar(value=producto.get("nombre", ""))
+        precio_var = tk.StringVar(value=str(producto.get("precio", 0)))
+        stock_actual_var = tk.StringVar(value=str(producto.get("stock_actual", 0)))
+        stock_minimo_var = tk.StringVar(value=str(producto.get("stock_minimo", 0)))
+
+        # Helpers UI
+        def label(text, r):
+            tk.Label(container, text=text, bg="#f5f5f5", font=("Segoe UI", 10)).grid(
+                row=r, column=0, sticky="w", pady=6
+            )
+
+        def entry(var, r):
+            e = ttk.Entry(container, textvariable=var, width=35)
+            e.grid(row=r, column=1, sticky="w", pady=6)
+            return e
+
+        label("Nombre:", 1)
+        e_nombre = entry(nombre_var, 1)
+
+        label("Precio:", 2)
+        e_precio = entry(precio_var, 2)
+
+        label("Stock actual:", 3)
+        e_stock = entry(stock_actual_var, 3)
+
+        label("Stock mínimo:", 4)
+        e_min = entry(stock_minimo_var, 4)
+
+        # Botones
+        botones = tk.Frame(container, bg="#f5f5f5")
+        botones.grid(row=5, column=0, columnspan=2, sticky="e", pady=(12, 0))
+
+        def guardar():
+            # Validaciones simples
+            nombre = nombre_var.get().strip()
+            if not nombre:
+                messagebox.showerror("Error", "El nombre no puede estar vacío.", parent=win)
+                return
+
+            try:
+                precio = float(precio_var.get().replace(",", "."))
+                stock_actual = int(stock_actual_var.get())
+                stock_minimo = int(stock_minimo_var.get())
+            except:
+                messagebox.showerror("Error", "Revisá precio/stock (deben ser numéricos).", parent=win)
+                return
+
+            if precio < 0 or stock_actual < 0 or stock_minimo < 0:
+                messagebox.showerror("Error", "Precio y stocks no pueden ser negativos.", parent=win)
+                return
+
             nuevos_datos = {
-                "nombre": simpledialog.askstring("Editar", "Nuevo nombre:", initialvalue=producto["nombre"]),
-                "precio": float(simpledialog.askstring("Editar", "Nuevo precio:", initialvalue=producto["precio"])),
-                "stock_actual": int(simpledialog.askstring("Editar", "Nuevo stock:", initialvalue=producto["stock_actual"])),
-                "stock_minimo": int(simpledialog.askstring("Editar", "Nuevo stock mínimo:", initialvalue=producto.get("stock_minimo", 0))),
+                "nombre": nombre,
+                "precio": precio,
+                "stock_actual": stock_actual,
+                "stock_minimo": stock_minimo,
             }
-        except:
-            messagebox.showerror("Error", "Datos inválidos")
-            return
 
-        if actualizar_producto(producto_id, nuevos_datos):
-            messagebox.showinfo("Éxito", "Producto actualizado correctamente")
-            self.actualizar_lista()
-        else:
-            messagebox.showerror("Error", "No se pudo actualizar el producto")
+            if actualizar_producto(producto_id, nuevos_datos):
+                messagebox.showinfo("Éxito", "Producto actualizado correctamente", parent=win)
+                win.destroy()
+                self.actualizar_lista()
+            else:
+                messagebox.showerror("Error", "No se pudo actualizar el producto", parent=win)
+
+        def cancelar():
+            win.destroy()
+
+        btn_guardar = tk.Button(
+            botones, text="Guardar", command=guardar,
+            font=("Segoe UI", 10, "bold"),
+            bg="#4CAF50", fg="white",
+            activebackground="#45a049",
+            bd=0, width=12
+        )
+        btn_guardar.pack(side=tk.LEFT, padx=8)
+
+        btn_cancelar = tk.Button(
+            botones, text="Cancelar", command=cancelar,
+            font=("Segoe UI", 10, "bold"),
+            bg="#9e9e9e", fg="white",
+            activebackground="#8d8d8d",
+            bd=0, width=12
+        )
+        btn_cancelar.pack(side=tk.LEFT)
+
+        # UX: foco + Enter para guardar + Esc para cancelar
+        e_nombre.focus_set()
+        win.bind("<Return>", lambda e: guardar())
+        win.bind("<Escape>", lambda e: cancelar())
 
     def eliminar_producto_ui(self):
         seleccionado = self.tree.focus()

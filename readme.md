@@ -210,5 +210,5 @@ Una vez que ese módulo funciona bien:
 
 ---
 
-Este archivo puede ser usado en cualquier momento para continuar el desarrollo con otra IA si fuera necesario.
+
 

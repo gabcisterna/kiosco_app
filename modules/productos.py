@@ -1,8 +1,28 @@
 import json
 import os
+import sys
 
-RUTA_PRODUCTOS = os.path.join("data", "productos.json")
-RUTA_PRODUCTOS_BAJOS = os.path.join("data", "productos_bajos.json")
+
+def _obtener_ruta_base():
+    """Obtiene la ruta base para archivos de datos.
+    Funciona tanto en desarrollo como cuando se ejecuta como .exe (PyInstaller).
+    """
+    if getattr(sys, "frozen", False):
+        return os.path.dirname(sys.executable)
+    return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def _asegurar_carpeta_data():
+    """Crea la carpeta data si no existe."""
+    ruta_base = _obtener_ruta_base()
+    carpeta_data = os.path.join(ruta_base, "data")
+    if not os.path.exists(carpeta_data):
+        os.makedirs(carpeta_data)
+    return carpeta_data
+
+
+RUTA_PRODUCTOS = os.path.join(_obtener_ruta_base(), "data", "productos.json")
+RUTA_PRODUCTOS_BAJOS = os.path.join(_obtener_ruta_base(), "data", "productos_bajos.json")
 
 
 def cargar_productos():
@@ -21,13 +41,14 @@ def cargar_productos():
 
 def guardar_productos(productos):
     """Guarda la lista de productos actualizada en productos.json"""
+    _asegurar_carpeta_data()
     with open(RUTA_PRODUCTOS, "w", encoding="utf-8") as archivo:
         json.dump(productos, archivo, ensure_ascii=False, indent=4)
 
 
 def cargar_productos_bajos():
-    """Carga y devuelve la lista de productos desde productos.json"""
-    if not os.path.exists(RUTA_PRODUCTOS):
+    """Carga y devuelve la lista de productos desde productos_bajos.json"""
+    if not os.path.exists(RUTA_PRODUCTOS_BAJOS):
         return []  # Si no existe, devolvemos lista vacía
     
     with open(RUTA_PRODUCTOS_BAJOS, "r", encoding="utf-8") as archivo:
@@ -40,7 +61,8 @@ def cargar_productos_bajos():
 
 
 def guardar_productos_bajos(productos):
-    """Guarda la lista de productos actualizada en productos.json"""
+    """Guarda la lista de productos actualizada en productos_bajos.json"""
+    _asegurar_carpeta_data()
     with open(RUTA_PRODUCTOS_BAJOS, "w", encoding="utf-8") as archivo:
         json.dump(productos, archivo, ensure_ascii=False, indent=4)
 
@@ -117,6 +139,10 @@ def agregar_producto(nuevo_producto):
     productos.append(nuevo_producto)
     guardar_productos(productos)
 
+    # Si el stock es bajo, agregar a productos_bajos
+    if nuevo_producto.get("stock_actual", 0) <= nuevo_producto.get("stock_minimo", 0):
+        _sincronizar_productos_bajos(nuevo_producto)
+
     #"Se puede eliminar despues de la UI"
     print(f"✅ Producto agregado: {nuevo_producto['nombre']} - ID: {nuevo_producto['id']}")
 
@@ -131,10 +157,39 @@ def eliminar_producto(producto_id):
         if int(producto["id"]) == int(producto_id):
             del productos[i]
             guardar_productos(productos)
+            # Eliminar también de productos_bajos si está
+            productos_bajos = cargar_productos_bajos()
+            productos_bajos = [p for p in productos_bajos if str(p["id"]) != str(producto_id)]
+            guardar_productos_bajos(productos_bajos)
             print(f"✅ Producto eliminado: {producto['nombre']} - ID: {producto['id']}")
             return True
     print(f"❌ Producto con ID {producto_id} no encontrado.")
     return False
+
+
+def _sincronizar_productos_bajos(producto_actualizado):
+    """
+    Mantiene productos_bajos.json sincronizado tras actualizar/agregar un producto.
+    Si stock_actual > stock_minimo: elimina de productos_bajos.
+    Si stock_actual <= stock_minimo: agrega o actualiza en productos_bajos.
+    """
+    productos_bajos = cargar_productos_bajos()
+    stock_actual = producto_actualizado.get("stock_actual", 0)
+    stock_minimo = producto_actualizado.get("stock_minimo", 0)
+    producto_id = str(producto_actualizado["id"])
+
+    if stock_actual > stock_minimo:
+        # Stock OK: eliminar de productos_bajos si está
+        productos_bajos = [p for p in productos_bajos if str(p["id"]) != producto_id]
+    else:
+        # Stock bajo: agregar o actualizar en productos_bajos
+        existente = next((p for p in productos_bajos if str(p["id"]) == producto_id), None)
+        if existente:
+            existente.update(producto_actualizado)
+        else:
+            productos_bajos.append(producto_actualizado.copy())
+
+    guardar_productos_bajos(productos_bajos)
 
 
 def actualizar_producto(producto_id, nuevos_datos):
@@ -145,6 +200,9 @@ def actualizar_producto(producto_id, nuevos_datos):
             nuevos_datos.pop("id", None)
             producto.update(nuevos_datos)
             guardar_productos(productos)
+
+            # Sincronizar productos_bajos (eliminar si stock OK, agregar/actualizar si stock bajo)
+            _sincronizar_productos_bajos(producto)
 
             #"Se puede eliminar despues de la UI"
             print(f"✅ Producto actualizado: {producto['nombre']} - ID: {producto['id']}")
@@ -188,6 +246,5 @@ def listar_productos_con_stock_bajo():
     return productos
 
 def buscar_productos_por_nombre(parcial):
-    with open("data/productos.json", "r", encoding="utf-8") as f:
-        productos = json.load(f)
+    productos = cargar_productos()
     return [p for p in productos if parcial.lower() in p["nombre"].lower()]
