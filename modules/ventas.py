@@ -60,9 +60,8 @@ def registrar_venta(productos_vendidos, forma_pago, cliente_dni=None, cliente_no
     total = 0
     detalle_productos = []
     for item in productos_vendidos:
-        producto = buscar_producto(str(item["id"]))
+        producto = buscar_producto(item["id"])
         if not producto:
-            print(f"❌ Producto con ID {item['id']} no encontrado.")
             return False
         if producto["stock_actual"] < item["cantidad"]:
             print(f"❌ No hay suficiente stock para el producto {producto['nombre']}.")

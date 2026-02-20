@@ -71,7 +71,7 @@ def restar_stock(producto_id, cantidad):
     """Resta stock de un producto dado por su ID"""
     productos = cargar_productos()
     for producto in productos:
-        if producto["id"] == str(producto_id):
+        if producto["id"] == producto_id:
             if producto["stock_actual"] >= cantidad:
                 producto["stock_actual"] -= cantidad
                 guardar_productos(productos)
@@ -97,16 +97,10 @@ def restar_stock(producto_id, cantidad):
 
                 #Se puede eliminar despues de la UI
                 print(f"✅ Stock actualizado: {producto['nombre']} - Nuevo stock: {producto['stock_actual']}")
-
-
-
                 return True
             else:
-
                 #"Se puede eliminar despues de la UI"
                 print(f"⚠️ No hay suficiente stock de {producto['nombre']}. Stock actual: {producto['stock_actual']}")
-
-
                 return False
             
 
@@ -219,8 +213,6 @@ def buscar_producto(producto_id):
     for producto in productos:
         if int(producto["id"]) == int(producto_id):
             return producto
-
-    print(f"❌ Producto con ID {producto_id} no encontrado.")
     return None
 
 
