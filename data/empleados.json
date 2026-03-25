@@ -1,1 +1,18 @@
-[]
+[
+    {
+        "id": "1",
+        "nombre": "prueba",
+        "correo": "prueba",
+        "puesto": "Dueño",
+        "usuario": "prueba",
+        "activo": false
+    },
+    {
+        "id": "2",
+        "nombre": "gaby",
+        "correo": "gaby",
+        "puesto": "Encargado",
+        "usuario": "gaby",
+        "activo": false
+    }
+]

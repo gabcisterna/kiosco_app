@@ -3,3 +3,6 @@ __pycache__/
 *.json
 .env
 .venv/
+.build/
+.dist/
+.txt

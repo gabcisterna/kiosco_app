@@ -1,1 +1,122 @@
-[]
+[
+    {
+        "fecha": "2026-02-20 10:31:47",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 500.0,
+        "productos": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 5,
+                "subtotal": 500.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-02-20 10:42:02",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 100.0,
+        "productos": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 1,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-02-20 10:42:25",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 100.0,
+        "productos": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 1,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-02-20 10:45:29",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 100.0,
+        "productos": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 1,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-02-20 10:47:17",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 100.0,
+        "productos": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 1,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-02-20 10:49:24",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 100.0,
+        "productos": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 1,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-02-20 11:00:09",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 100.0,
+        "productos": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 1,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-02-20 11:00:35",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "total": 300.0,
+        "productos": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 3,
+                "subtotal": 300.0
+            }
+        ]
+    }
+]

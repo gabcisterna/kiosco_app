@@ -1,1 +1,23 @@
-[]
+[
+    {
+        "id": 2,
+        "nombre": "pepsi",
+        "precio": 150.0,
+        "stock_actual": 10,
+        "stock_minimo": 15
+    },
+    {
+        "id": 3,
+        "nombre": "tete",
+        "precio": 120.0,
+        "stock_actual": 10,
+        "stock_minimo": 10
+    },
+    {
+        "id": 1,
+        "nombre": "coca",
+        "precio": 100.0,
+        "stock_actual": 5,
+        "stock_minimo": 5
+    }
+]
