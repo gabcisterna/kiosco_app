@@ -22,6 +22,10 @@ class PantallaCaja:
         self.master.bind("<Escape>", lambda e: self.master.attributes("-fullscreen", False))
         self.master.bind("<Return>", self.agregar_producto)
         self.master.bind("<F2>", lambda event: self.confirmar_venta())
+        self.ajuste_tipo_var = tk.StringVar(value="ninguno")       # ninguno / descuento / interes
+        self.ajuste_modo_var = tk.StringVar(value="porcentaje")    # porcentaje / monto
+        self.ajuste_valor_var = tk.StringVar(value="")
+        self.ajuste_info_label = None
 
 
         self.carrito = []
@@ -58,7 +62,45 @@ class PantallaCaja:
         # Ahora los botones van en la derecha, debajo del total y vuelto:
         self.crear_botones_y_finalizar(self.derecha_frame)
 
+    def calcular_totales_con_ajuste(self):
+        subtotal = sum(p["cantidad"] * p["precio"] for p in self.carrito)
 
+        tipo = self.ajuste_tipo_var.get()
+        modo = self.ajuste_modo_var.get()
+
+        try:
+            valor = float(self.ajuste_valor_var.get() or 0)
+        except ValueError:
+            valor = 0.0
+
+        if valor < 0:
+            valor = 0.0
+
+        importe_aplicado = 0.0
+
+        if tipo in ["descuento", "interes"] and valor > 0:
+            if modo == "porcentaje":
+                importe_aplicado = subtotal * (valor / 100)
+            else:
+                importe_aplicado = valor
+
+            if tipo == "descuento":
+                importe_aplicado = min(importe_aplicado, subtotal)
+
+        total_final = subtotal
+        if tipo == "descuento":
+            total_final -= importe_aplicado
+        elif tipo == "interes":
+            total_final += importe_aplicado
+
+        return {
+            "subtotal": round(subtotal, 2),
+            "tipo": tipo,
+            "modo": modo,
+            "valor": round(valor, 2),
+            "importe_aplicado": round(importe_aplicado, 2),
+            "total_final": round(total_final, 2)
+        }
 
     def crear_barra_superior_completa(self, frame):
         barra_superior = tk.Frame(frame, bg="#dce6f0", pady=10, padx=20, bd=1, relief="ridge")
@@ -282,6 +324,64 @@ class PantallaCaja:
                             font=("Segoe UI", 24, "bold"), bg="#ffffff", fg="#2e7d32")
         self.total_label.pack(anchor="w", pady=(0, 10))
 
+        ajuste_frame = tk.LabelFrame(
+            resumen_frame,
+            text="Descuento / Interés",
+            bg="#ffffff",
+            fg="#333",
+            font=self.font_labels,
+            padx=10,
+            pady=10
+        )
+        ajuste_frame.pack(fill=tk.X, pady=(0, 10))
+
+        tk.Label(ajuste_frame, text="Tipo:", bg="#ffffff", font=self.font_labels).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+
+        combo_tipo = ttk.Combobox(
+            ajuste_frame,
+            textvariable=self.ajuste_tipo_var,
+            values=["ninguno", "descuento", "interes"],
+            state="readonly",
+            width=12
+        )
+        combo_tipo.grid(row=0, column=1, padx=5, pady=5)
+
+        tk.Label(ajuste_frame, text="Aplicar como:", bg="#ffffff", font=self.font_labels).grid(row=0, column=2, sticky="w", padx=5, pady=5)
+
+        combo_modo = ttk.Combobox(
+            ajuste_frame,
+            textvariable=self.ajuste_modo_var,
+            values=["porcentaje", "monto"],
+            state="readonly",
+            width=12
+        )
+        combo_modo.grid(row=0, column=3, padx=5, pady=5)
+
+        tk.Label(ajuste_frame, text="Valor:", bg="#ffffff", font=self.font_labels).grid(row=1, column=0, sticky="w", padx=5, pady=5)
+
+        entry_ajuste = tk.Entry(
+            ajuste_frame,
+            textvariable=self.ajuste_valor_var,
+            font=self.font_labels,
+            relief="solid",
+            bd=1,
+            width=15
+        )
+        entry_ajuste.grid(row=1, column=1, padx=5, pady=5, sticky="w")
+
+        self.ajuste_info_label = tk.Label(
+            ajuste_frame,
+            text="Sin ajuste aplicado",
+            bg="#ffffff",
+            fg="#555",
+            font=("Segoe UI", 10)
+        )
+        self.ajuste_info_label.grid(row=1, column=2, columnspan=2, sticky="w", padx=5, pady=5)
+
+        combo_tipo.bind("<<ComboboxSelected>>", lambda e: self.actualizar_total())
+        combo_modo.bind("<<ComboboxSelected>>", lambda e: self.actualizar_total())
+        entry_ajuste.bind("<KeyRelease>", self.actualizar_total)
+
         self.vuelto_label = tk.Label(resumen_frame, text="Vuelto: $0.00",
                                     font=("Segoe UI", 20), bg="#ffffff", fg="#c62828")
         self.vuelto_label.pack(anchor="w")
@@ -406,9 +506,31 @@ class PantallaCaja:
             texto = f"{p['cantidad']} x {p['nombre']} - ${p['precio']:.2f} c/u = ${subtotal:.2f}"
             self.lista_productos.insert(tk.END, texto)
 
-    def actualizar_total(self):
-        total = sum(p["cantidad"] * p["precio"] for p in self.carrito)
-        self.total_label.config(text=f"Total: ${total:.2f}")
+    def actualizar_total(self, event=None):
+        datos = self.calcular_totales_con_ajuste()
+
+        self.total_label.config(
+            text=f"Total: ${datos['total_final']:.2f}"
+        )
+
+        if self.ajuste_info_label:
+            if datos["tipo"] in ["descuento", "interes"] and datos["importe_aplicado"] > 0:
+                signo = "-" if datos["tipo"] == "descuento" else "+"
+                etiqueta_tipo = "Descuento" if datos["tipo"] == "descuento" else "Interés"
+
+                if datos["modo"] == "porcentaje":
+                    detalle = f"{etiqueta_tipo}: {signo}${datos['importe_aplicado']:.2f} ({datos['valor']:.2f}%)"
+                else:
+                    detalle = f"{etiqueta_tipo}: {signo}${datos['importe_aplicado']:.2f}"
+
+                self.ajuste_info_label.config(
+                    text=f"Subtotal: ${datos['subtotal']:.2f} | {detalle}"
+                )
+            else:
+                self.ajuste_info_label.config(
+                    text=f"Subtotal: ${datos['subtotal']:.2f} | Sin ajuste aplicado"
+                )
+
         self.actualizar_vuelto()
 
     def actualizar_vuelto(self, event=None):
@@ -417,9 +539,14 @@ class PantallaCaja:
         except ValueError:
             self.vuelto_label.config(text="Vuelto: $0.00")
             return
-        total = sum(p["cantidad"] * p["precio"] for p in self.carrito)
+
+        datos = self.calcular_totales_con_ajuste()
+        total = datos["total_final"]
+
         vuelto = pago - total
-        self.vuelto_label.config(text=f"Vuelto: ${vuelto:.2f}" if vuelto >= 0 else "Vuelto: $0.00")
+        self.vuelto_label.config(
+            text=f"Vuelto: ${vuelto:.2f}" if vuelto >= 0 else "Vuelto: $0.00"
+        )
 
     def cambiar_cantidad_seleccionada(self):
         seleccion = self.lista_productos.curselection()
@@ -454,14 +581,27 @@ class PantallaCaja:
         self.entry_pago.delete(0, tk.END)
         self.entry_dni.delete(0, tk.END)
         self.entry_nombre.delete(0, tk.END)
+        self.ajuste_tipo_var.set("ninguno")
+        self.ajuste_modo_var.set("porcentaje")
+        self.ajuste_valor_var.set("")
+        
+        if self.ajuste_info_label:
+            self.ajuste_info_label.config(text="Sin ajuste aplicado")
 
 
     def confirmar_venta(self):
         if not self.carrito:
             messagebox.showerror("Error", "No hay productos en la venta.")
             return
-        total = sum(p["cantidad"] * p["precio"] for p in self.carrito)
-        pago = float(self.entry_pago.get() or 0)
+
+        datos = self.calcular_totales_con_ajuste()
+        total_final = datos["total_final"]
+
+        try:
+            pago = float(self.entry_pago.get() or 0)
+        except ValueError:
+            pago = 0
+
         forma = self.forma_pago_var.get()
         nombre = self.entry_nombre.get().strip()
         dni = self.entry_dni.get().strip()
@@ -469,18 +609,37 @@ class PantallaCaja:
         if forma in ["deuda", "debito"] and (not nombre or not dni):
             messagebox.showerror("Error", "DNI y nombre son obligatorios para deuda.")
             return
-        if forma not in ["deuda", "debito"] and pago < total:
+
+        if forma not in ["deuda", "debito"] and pago < total_final:
             messagebox.showerror("Error", "El pago es insuficiente.")
             return
 
+        ajuste = {
+            "tipo": datos["tipo"],
+            "modo": datos["modo"],
+            "valor": datos["valor"],
+            "importe_aplicado": datos["importe_aplicado"]
+        }
 
-        registrar_venta(self.carrito, forma, dni or None, nombre or None)
-        self.vuelto_label.config(text=f"Vuelto: ${pago - total:.2f}" if forma not in ["deuda", "debito"] else "Vuelto: $0.00")
+        ok = registrar_venta(
+            self.carrito,
+            forma,
+            dni or None,
+            nombre or None,
+            ajuste=ajuste
+        )
+
+        if not ok:
+            messagebox.showerror("Error", "No se pudo registrar la venta.")
+            return
+
+        self.vuelto_label.config(
+            text=f"Vuelto: ${pago - total_final:.2f}" if forma not in ["deuda", "debito"] else "Vuelto: $0.00"
+        )
+
         self.carrito = []
         self.limpiar_despues_de_venta()
-
         messagebox.showinfo("Venta confirmada", "La venta se realizó con éxito.")
-
 
     def cerrar_sesion_y_volver_al_login(self):
         cerrar_sesion()

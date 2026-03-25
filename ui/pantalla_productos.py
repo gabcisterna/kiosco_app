@@ -241,7 +241,21 @@ class PantallaProductos:
     
         # UX
         e_id.focus_set()
-        win.bind("<Return>", lambda e: guardar())
+        
+        def avanzar_desde_id(event=None):
+            e_nombre.focus_set()
+            e_nombre.icursor(tk.END)
+            return "break"
+        
+        def bloquear_enter(event=None):
+            return "break"
+        
+        e_id.bind("<Return>", avanzar_desde_id)
+        e_nombre.bind("<Return>", bloquear_enter)
+        e_precio.bind("<Return>", bloquear_enter)
+        e_stock.bind("<Return>", bloquear_enter)
+        e_min.bind("<Return>", bloquear_enter)
+        
         win.bind("<Escape>", lambda e: cancelar())
 
     def editar_producto_ui(self):
