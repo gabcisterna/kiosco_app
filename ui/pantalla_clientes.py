@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, simpledialog, messagebox
-from modules.clientes import cargar_clientes, agregar_cliente
+from modules.clientes import buscar_clientes_por_texto, cargar_clientes, resolver_cliente_para_venta
 
 class PantallaClientes:
     def __init__(self, master):
@@ -13,7 +13,7 @@ class PantallaClientes:
         top_frame = tk.Frame(self.master, bg="#f5f5f5")
         top_frame.pack(pady=15, padx=20, fill=tk.X)
 
-        tk.Label(top_frame, text="Buscar por DNI:", bg="#f5f5f5", font=("Segoe UI", 10)).pack(side=tk.LEFT, padx=(0, 5))
+        tk.Label(top_frame, text="Buscar por nombre, DNI o referencia:", bg="#f5f5f5", font=("Segoe UI", 10)).pack(side=tk.LEFT, padx=(0, 5))
         self.entry_dni = ttk.Entry(top_frame)
         self.entry_dni.pack(side=tk.LEFT, padx=(0, 10), ipadx=30)
         self.entry_dni.bind("<KeyRelease>", lambda e: self.buscar_cliente_dinamico())
@@ -42,40 +42,40 @@ class PantallaClientes:
         self.buscar_cliente_dinamico()
 
     def buscar_cliente_dinamico(self):
-        dni_buscado = self.entry_dni.get().strip()
-        todos = cargar_clientes()
+        texto_buscado = self.entry_dni.get().strip()
+        todos = buscar_clientes_por_texto(texto_buscado) if texto_buscado else cargar_clientes()
 
         # Limpiar árbol
         for item in self.tree.get_children():
             self.tree.delete(item)
 
-        # Filtrar por DNI parcial
         for cliente in todos:
-            if dni_buscado == "" or cliente["dni"].startswith(dni_buscado):
-                self.tree.insert("", tk.END, values=(
-                    cliente.get("nombre", ""),
-                    cliente.get("dni", ""),
-                    f"${cliente.get('deuda', 0):.2f}"
-                ))
+            self.tree.insert("", tk.END, values=(
+                cliente.get("nombre", ""),
+                cliente.get("dni", ""),
+                f"${cliente.get('deuda', 0):.2f}"
+            ))
 
     def agregar_cliente_ui(self):
         try:
-            nuevo = {
-                "nombre": simpledialog.askstring("Nuevo Cliente", "Nombre:"),
-                "dni": simpledialog.askstring("Nuevo Cliente", "DNI:"),
-                "deuda": 0.0,
-            }
-        except Exception as e:
+            nombre = simpledialog.askstring("Nuevo Cliente", "Nombre o alias:")
+            dni = simpledialog.askstring("Nuevo Cliente", "DNI o referencia (opcional):")
+        except Exception:
             messagebox.showerror("Error", "Datos inválidos.")
             return
 
-        if not nuevo["nombre"] or not nuevo["dni"]:
-            messagebox.showerror("Error", "El nombre y DNI son obligatorios.")
+        if not nombre:
+            messagebox.showerror("Error", "El nombre es obligatorio.")
             return
 
-        if agregar_cliente(nuevo):
-            messagebox.showinfo("Éxito", "Cliente agregado correctamente.")
-            self.entry_dni.delete(0, tk.END)
-            self.buscar_cliente_dinamico()
-        else:
-            messagebox.showwarning("Duplicado", f"Ya existe un cliente con DNI {nuevo['dni']}.")
+        cliente = resolver_cliente_para_venta(dni=dni, nombre=nombre, crear_si_no_existe=True)
+        if not cliente:
+            messagebox.showerror("Error", "No se pudo guardar el cliente.")
+            return
+
+        messagebox.showinfo(
+            "Éxito",
+            f"Cliente listo: {cliente['nombre']} | Ref: {cliente['dni']}",
+        )
+        self.entry_dni.delete(0, tk.END)
+        self.buscar_cliente_dinamico()

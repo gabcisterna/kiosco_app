@@ -1,8 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox, simpledialog, font, ttk
-from modules.empleados import obtener_empleado_activo
+from modules.clientes import buscar_clientes_por_texto, resolver_cliente_para_venta
+from modules.empleados import obtener_empleado_activo, obtener_permisos_empleado
 from modules.login import cerrar_sesion
-from modules.productos import buscar_producto, listar_productos_con_stock_bajo, buscar_productos_por_nombre
+from modules.productos import (
+    buscar_producto,
+    buscar_productos_por_texto,
+    listar_productos_con_stock_bajo,
+)
 from modules.ventas import registrar_venta
 from ui.pantalla_productos import PantallaProductos
 from ui.pantalla_ventas import PantallaVentas
@@ -11,6 +16,7 @@ from ui.pantalla_registros import PantallaRegistros
 from ui.pantalla_debito import PantallaDebitos
 from ui.pantalla_clientes import PantallaClientes
 from ui.pantalla_empleados import PantallaEmpleados
+from ui.pantalla_reportes import PantallaReportes
 
 class PantallaCaja:
     def __init__(self, master, ir_a_login):
@@ -30,16 +36,23 @@ class PantallaCaja:
 
         self.carrito = []
         self.empleado = obtener_empleado_activo()
+        self.permisos = obtener_permisos_empleado(self.empleado)
 
         # Fuentes
         self.font_lista = font.Font(family="Segoe UI", size=14, weight="bold")
         self.font_labels = font.Font(family="Segoe UI", size=12)
         self.font_pequena = font.Font(family="Segoe UI", size=10)
+        self.font_busqueda = font.Font(family="Segoe UI", size=17, weight="bold")
+        self.font_sugerencias = font.Font(family="Segoe UI", size=12)
 
         main_frame = tk.Frame(master, bg="#f0f4f8", padx=20, pady=20)
         main_frame.pack(fill=tk.BOTH, expand=True)
 
         self.crear_barra_superior_completa(main_frame)
+
+        if not self.permisos.get("usar_caja"):
+            self.crear_panel_sin_caja(main_frame)
+            return
 
         # Dividir en dos columnas
         self.izquierda_frame = tk.Frame(main_frame, bg="#f0f4f8")
@@ -102,40 +115,100 @@ class PantallaCaja:
             "total_final": round(total_final, 2)
         }
 
+    def _definir_botones_admin(self):
+        botones = []
+
+        if self.permisos.get("ver_productos"):
+            botones.append(("Productos", self.abrir_popup_productos))
+        if self.permisos.get("ver_ventas"):
+            botones.append(("Ventas", self.abrir_popup_ventas))
+        if self.permisos.get("ver_registros"):
+            botones.append(("Registros", self.abrir_popup_registros))
+        if self.permisos.get("ver_deudas"):
+            botones.append(("Deudas", self.abrir_popup_deudas))
+        if self.permisos.get("ver_debito"):
+            botones.append(("Débito", self.abrir_popup_debito))
+        if self.permisos.get("ver_clientes"):
+            botones.append(("Clientes", self.abrir_popup_clientes))
+        if self.permisos.get("ver_reportes"):
+            botones.append(("Reportes", self.abrir_popup_reportes))
+        if self.permisos.get("gestionar_empleados"):
+            botones.append(("Empleados", self.abrir_popup_empleados))
+
+        return botones
+
+    def crear_panel_sin_caja(self, frame):
+        panel = tk.Frame(frame, bg="#ffffff", bd=1, relief="ridge", padx=28, pady=28)
+        panel.pack(fill=tk.BOTH, expand=True, pady=(10, 0))
+
+        tk.Label(
+            panel,
+            text=f"{self.empleado['puesto']}: acceso limitado",
+            bg="#ffffff",
+            fg="#1f2937",
+            font=("Segoe UI", 22, "bold"),
+        ).pack(anchor="w")
+
+        if self.permisos.get("gestionar_productos"):
+            descripcion = "Este perfil no puede vender, pero sí puede consultar y gestionar productos."
+        else:
+            descripcion = "Este perfil no puede vender. Solo puede consultar los productos disponibles."
+
+        tk.Label(
+            panel,
+            text=descripcion,
+            bg="#ffffff",
+            fg="#4b5563",
+            font=("Segoe UI", 12),
+            wraplength=900,
+            justify="left",
+        ).pack(anchor="w", pady=(10, 22))
+
+        botones = tk.Frame(panel, bg="#ffffff")
+        botones.pack(anchor="w")
+
+        if self.permisos.get("ver_productos"):
+            tk.Button(
+                botones,
+                text="Ver productos",
+                command=self.abrir_popup_productos,
+                bg="#2563eb",
+                fg="white",
+                font=("Segoe UI", 11, "bold"),
+                relief="flat",
+                padx=16,
+                pady=8,
+            ).pack(side=tk.LEFT, padx=(0, 10))
+
+        if self.permisos.get("ver_reportes"):
+            tk.Button(
+                botones,
+                text="Ver reportes",
+                command=self.abrir_popup_reportes,
+                bg="#0f766e",
+                fg="white",
+                font=("Segoe UI", 11, "bold"),
+                relief="flat",
+                padx=16,
+                pady=8,
+            ).pack(side=tk.LEFT)
+
+        if self.permisos.get("ver_productos"):
+            self.master.after(120, self.abrir_popup_productos)
+
     def crear_barra_superior_completa(self, frame):
         barra_superior = tk.Frame(frame, bg="#dce6f0", pady=10, padx=20, bd=1, relief="ridge")
         barra_superior.pack(fill=tk.X, pady=(0, 15))
 
         # Empleado activo (izquierda)
-        tk.Label(barra_superior, text=f"Empleado activo: {self.empleado['nombre']}",
+        tk.Label(barra_superior, text=f"Empleado activo: {self.empleado['nombre']} | Puesto: {self.empleado['puesto']}",
                 font=self.font_labels, bg="#dce6f0", fg="#333").pack(side=tk.LEFT)
 
         # Botones administración (centro)
         botones_frame = tk.Frame(barra_superior, bg="#dce6f0")
         botones_frame.pack(side=tk.LEFT, expand=True)
 
-        botones = []
-        if self.empleado["puesto"] == "Dueño":
-            botones = [
-                ("Productos", self.abrir_popup_productos),
-                ("Ventas", self.abrir_popup_ventas),
-                ("Registros", self.abrir_popup_registros),
-                ("Deudas", self.abrir_popup_deudas),
-                ("Débito", self.abrir_popup_debito),
-                ("Clientes", self.abrir_popup_clientes),
-                ("Empleados", self.abrir_popup_empleados)
-            ]
-        elif self.empleado["puesto"] == "Encargado":
-            botones = [
-                ("Productos", self.abrir_popup_productos),
-                ("Ventas", self.abrir_popup_ventas),
-                ("Registros", self.abrir_popup_registros),
-                ("Deudas", self.abrir_popup_deudas),
-                ("Débito", self.abrir_popup_debito),
-                ("Clientes", self.abrir_popup_clientes)
-            ]
-
-        for texto, comando in botones:
+        for texto, comando in self._definir_botones_admin():
             tk.Button(
                 botones_frame, text=texto, command=comando,
                 bg="#4a90e2", fg="white", font=self.font_labels,
@@ -150,31 +223,33 @@ class PantallaCaja:
 
     def crear_entrada_producto(self, frame):
         sub_frame = tk.Frame(frame, bg="#f0f4f8")
-        sub_frame.pack(pady=10)
+        sub_frame.pack(pady=(10, 15), fill=tk.X)
+        sub_frame.grid_columnconfigure(1, weight=1)
 
         # --- ID o nombre del producto ---
-        tk.Label(sub_frame, text="🔍 ID o nombre:", font=self.font_labels, bg="#f0f4f8", fg="#333").grid(row=0, column=0, sticky="w", padx=(0, 5))
+        tk.Label(sub_frame, text="Buscar producto:", font=("Segoe UI", 13, "bold"), bg="#f0f4f8", fg="#333").grid(row=0, column=0, sticky="w", padx=(0, 8))
 
-        self.entrada_id = tk.Entry(sub_frame, font=self.font_labels, relief="solid", bd=2, width=25, bg="white")
-        self.entrada_id.grid(row=0, column=1, padx=(0, 20))
+        self.entrada_id = tk.Entry(sub_frame, font=self.font_busqueda, relief="solid", bd=2, width=34, bg="white")
+        self.entrada_id.grid(row=0, column=1, padx=(0, 20), sticky="ew", ipady=6)
         self.entrada_id.bind("<KeyRelease>", self.autocompletar_producto)
 
         # Lista de sugerencias (se crea pero se oculta hasta que haya sugerencias)
-        self.lista_sugerencias = tk.Listbox(sub_frame, font=self.font_pequena, height=5, bg="white", fg="black", relief="solid", bd=1)
-        self.lista_sugerencias.grid(row=1, column=1, sticky="w", padx=(0, 20), pady=(0, 5))
+        self.lista_sugerencias = tk.Listbox(sub_frame, font=self.font_sugerencias, height=7, width=44, bg="white", fg="black", relief="solid", bd=1)
+        self.lista_sugerencias.grid(row=1, column=1, sticky="ew", padx=(0, 20), pady=(4, 5))
         self.lista_sugerencias.bind("<<ListboxSelect>>", self.seleccionar_sugerencia)
+        self.lista_sugerencias.bind("<Double-Button-1>", self.seleccionar_sugerencia)
         self.lista_sugerencias.grid_remove()  # Oculta inicialmente
 
         # --- Cantidad ---
-        tk.Label(sub_frame, text="🔢 Cantidad:", font=self.font_labels, bg="#f0f4f8", fg="#333").grid(row=0, column=2, sticky="w", padx=(0, 5))
+        tk.Label(sub_frame, text="Cantidad:", font=("Segoe UI", 13, "bold"), bg="#f0f4f8", fg="#333").grid(row=0, column=2, sticky="w", padx=(0, 8))
 
-        self.entrada_cantidad = tk.Entry(sub_frame, font=self.font_labels, relief="solid", bd=2, width=10, bg="white")
-        self.entrada_cantidad.grid(row=0, column=3, padx=(0, 20))
+        self.entrada_cantidad = tk.Entry(sub_frame, font=("Segoe UI", 15, "bold"), relief="solid", bd=2, width=8, bg="white")
+        self.entrada_cantidad.grid(row=0, column=3, padx=(0, 20), ipady=6)
         self.entrada_cantidad.insert(0, "1")  # Valor por defecto: 1
 
         # --- Botón para agregar al carrito ---
-        btn_agregar = tk.Button(sub_frame, text="➕ Agregar", command=self.agregar_producto,
-                                font=self.font_labels, bg="#4CAF50", fg="white", relief="flat", padx=10, pady=5)
+        btn_agregar = tk.Button(sub_frame, text="Agregar", command=self.agregar_producto,
+                                font=("Segoe UI", 13, "bold"), bg="#4CAF50", fg="white", relief="flat", padx=16, pady=8)
         btn_agregar.grid(row=0, column=4)
 
 
@@ -241,11 +316,27 @@ class PantallaCaja:
         self.label_dni.grid(row=0, column=0, sticky="w", padx=(0, 10))
         self.entry_dni = tk.Entry(cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=20)
         self.entry_dni.grid(row=1, column=0, padx=(0, 20), pady=(0, 10))
+        self.entry_dni.bind("<KeyRelease>", self.autocompletar_cliente)
 
         self.label_nombre = tk.Label(cliente_frame, text="Nombre (opcional):", font=self.font_pequena, bg="#ffffff", fg="#555")
         self.label_nombre.grid(row=0, column=1, sticky="w")
         self.entry_nombre = tk.Entry(cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=25)
         self.entry_nombre.grid(row=1, column=1, padx=(0, 10), pady=(0, 10))
+        self.entry_nombre.bind("<KeyRelease>", self.autocompletar_cliente)
+
+        self.lista_clientes_sugeridos = tk.Listbox(
+            cliente_frame,
+            font=self.font_pequena,
+            height=4,
+            bg="white",
+            fg="black",
+            relief="solid",
+            bd=1,
+        )
+        self.lista_clientes_sugeridos.grid(row=2, column=0, columnspan=2, sticky="ew", padx=(0, 10), pady=(0, 10))
+        self.lista_clientes_sugeridos.bind("<<ListboxSelect>>", self.seleccionar_cliente_sugerido)
+        self.lista_clientes_sugeridos.bind("<Double-Button-1>", self.seleccionar_cliente_sugerido)
+        self.lista_clientes_sugeridos.grid_remove()
 
         # FORMA DE PAGO
         forma_frame = tk.LabelFrame(frame, text="Forma de pago", bg="#ffffff", fg="#333", font=self.font_labels, padx=10, pady=10)
@@ -273,34 +364,138 @@ class PantallaCaja:
         self.entry_pago.bind("<KeyRelease>", self.actualizar_vuelto)
 
 
+    def _ocultar_sugerencias(self):
+        self.lista_sugerencias.delete(0, tk.END)
+        self.lista_sugerencias.grid_remove()
+
+    def _extraer_id_desde_texto_producto(self, texto):
+        candidato = texto.split(" - ", 1)[0].strip()
+        if candidato.isdigit():
+            return int(candidato)
+        return None
+
+    def _buscar_coincidencias_producto(self, texto):
+        return buscar_productos_por_texto(texto)[:10]
+
+    def _resolver_producto_desde_entrada(self):
+        texto = self.entrada_id.get().strip()
+        if not texto:
+            return None
+
+        if self.lista_sugerencias.curselection():
+            seleccion = self.lista_sugerencias.get(self.lista_sugerencias.curselection()[0])
+            prod_id = self._extraer_id_desde_texto_producto(seleccion)
+            if prod_id is not None:
+                return buscar_producto(prod_id)
+
+        prod_id = self._extraer_id_desde_texto_producto(texto)
+        if prod_id is not None:
+            producto = buscar_producto(prod_id)
+            if producto:
+                return producto
+
+        coincidencias = self._buscar_coincidencias_producto(texto)
+        texto_normalizado = texto.lower()
+        for producto in coincidencias:
+            if str(producto.get("nombre", "")).strip().lower() == texto_normalizado:
+                return producto
+
+        if len(coincidencias) == 1:
+            return coincidencias[0]
+
+        return None
+
+    def _limpiar_busqueda_producto(self):
+        self.entrada_id.delete(0, tk.END)
+        self._ocultar_sugerencias()
+
     def autocompletar_producto(self, event=None):
         texto = self.entrada_id.get().strip()
-
-        if texto.isnumeric() or texto == "":
-            self.lista_sugerencias.grid_remove()
+        if not texto:
+            self._ocultar_sugerencias()
             return
 
-        sugerencias = buscar_productos_por_nombre(texto)
-        if sugerencias:
-            self.lista_sugerencias.delete(0, tk.END)
-            for prod in sugerencias[:10]:
-                self.lista_sugerencias.insert(tk.END, f"{prod['id']} - {prod['nombre']}")
-            self.lista_sugerencias.grid()
-        else:
-            self.lista_sugerencias.grid_remove()
+        sugerencias = self._buscar_coincidencias_producto(texto)
+        if not sugerencias:
+            self._ocultar_sugerencias()
+            return
 
-
+        self.lista_sugerencias.delete(0, tk.END)
+        for prod in sugerencias:
+            self.lista_sugerencias.insert(tk.END, f"{prod['id']} - {prod['nombre']}")
+        self.lista_sugerencias.grid()
 
     def seleccionar_sugerencia(self, event):
         if not self.lista_sugerencias.curselection():
             return
 
-        seleccion = self.lista_sugerencias.get(self.lista_sugerencias.curselection())
-        prod_id = seleccion.split(" - ")[0]
+        seleccion = self.lista_sugerencias.get(self.lista_sugerencias.curselection()[0])
         self.entrada_id.delete(0, tk.END)
-        self.entrada_id.insert(0, prod_id)
-        self.lista_sugerencias.grid_remove()
+        self.entrada_id.insert(0, seleccion)
+        self._ocultar_sugerencias()
         self.entrada_cantidad.focus_set()
+
+    def _ocultar_sugerencias_cliente(self):
+        self.lista_clientes_sugeridos.delete(0, tk.END)
+        self.lista_clientes_sugeridos.grid_remove()
+
+    def _buscar_coincidencias_cliente(self, texto):
+        return buscar_clientes_por_texto(texto)[:8]
+
+    def autocompletar_cliente(self, event=None):
+        if self.forma_pago_var.get() not in ["deuda", "debito"]:
+            self._ocultar_sugerencias_cliente()
+            return
+
+        texto = ""
+        if event and event.widget is self.entry_dni:
+            texto = self.entry_dni.get().strip()
+        elif event and event.widget is self.entry_nombre:
+            texto = self.entry_nombre.get().strip()
+        else:
+            texto = self.entry_nombre.get().strip() or self.entry_dni.get().strip()
+
+        if not texto:
+            self._ocultar_sugerencias_cliente()
+            return
+
+        sugerencias = self._buscar_coincidencias_cliente(texto)
+        if not sugerencias:
+            self._ocultar_sugerencias_cliente()
+            return
+
+        self.lista_clientes_sugeridos.delete(0, tk.END)
+        for cliente in sugerencias:
+            self.lista_clientes_sugeridos.insert(
+                tk.END,
+                f"{cliente.get('dni', '')} - {cliente.get('nombre', '')}",
+            )
+        self.lista_clientes_sugeridos.grid()
+
+    def seleccionar_cliente_sugerido(self, event=None):
+        if not self.lista_clientes_sugeridos.curselection():
+            return
+
+        seleccion = self.lista_clientes_sugeridos.get(self.lista_clientes_sugeridos.curselection()[0])
+        dni, _, nombre = seleccion.partition(" - ")
+        self.entry_dni.delete(0, tk.END)
+        self.entry_dni.insert(0, dni.strip())
+        self.entry_nombre.delete(0, tk.END)
+        self.entry_nombre.insert(0, nombre.strip())
+        self._ocultar_sugerencias_cliente()
+
+    def _resolver_cliente_para_pago(self):
+        dni = self.entry_dni.get().strip()
+        nombre = self.entry_nombre.get().strip()
+
+        if not dni and not nombre:
+            return None
+
+        return resolver_cliente_para_venta(
+            dni=dni or None,
+            nombre=nombre or None,
+            crear_si_no_existe=True,
+        )
 
 
     def seleccionar_forma_pago(self, valor):
@@ -426,14 +621,15 @@ class PantallaCaja:
             self.label_nombre.config(text="Nombre del cliente (opcional):")
             self.entry_dni.config(bg="#f0f4f8")
             self.entry_nombre.config(bg="#f0f4f8")
+            self._ocultar_sugerencias_cliente()
             if not self.vuelto_label.winfo_ismapped():
                 self.vuelto_label.pack(anchor="w")
             self.actualizar_vuelto()
 
         else:
             # Ocultar campo de pago y vuelto
-            self.label_dni.config(text="DNI del cliente (obligatorio):")
-            self.label_nombre.config(text="Nombre del cliente (obligatorio):")
+            self.label_dni.config(text="DNI o referencia (opcional):")
+            self.label_nombre.config(text="Nombre o alias (opcional):")
             self.entry_dni.config(bg="white")
             self.entry_nombre.config(bg="white")
             self.label_pago.pack_forget()
@@ -450,39 +646,43 @@ class PantallaCaja:
             self.tree_stock_bajo.insert("", tk.END, values=(producto["id"], producto["nombre"], producto["stock_actual"]))
 
     def agregar_producto(self, event=None):
+        if not self.permisos.get("usar_caja"):
+            return
+
         # Verifica desde qué widget vino el Enter
         if event:
             if event.widget not in [self.entrada_id, self.entrada_cantidad]:
                 return  # No hacer nada si Enter se presionó fuera de estos dos campos
 
-        id_texto = self.entrada_id.get().strip()
         cant_texto = self.entrada_cantidad.get().strip()
 
-        if not id_texto.isdigit():
-            return  # No mostrar error si aún está escribiendo o es autocompletado
-
         if not cant_texto.isdigit():
-            messagebox.showerror("Error", "La cantidad debe ser numérica")
+            messagebox.showerror("Error", "La cantidad debe ser numerica")
             return
 
-        prod_id = int(id_texto)
         cantidad = int(cant_texto)
 
         if cantidad <= 0:
             messagebox.showerror("Error", "La cantidad debe ser mayor a cero")
             return
 
-        producto = buscar_producto(prod_id)
+        producto = self._resolver_producto_desde_entrada()
         if not producto:
-            messagebox.showerror("Error", f"No se encontró producto con ID {prod_id}")
+            messagebox.showerror(
+                "Error",
+                "No se pudo identificar el producto. Buscalo por ID o nombre y, si hace falta, elegilo de la lista.",
+            )
             return
+        prod_id = int(producto["id"])
 
         for p in self.carrito:
             if p["id"] == prod_id:
                 p["cantidad"] += cantidad
                 self.actualizar_lista()
                 self.actualizar_total()
-                self.entrada_id.delete(0, tk.END)
+                self._limpiar_busqueda_producto()
+                self.entrada_cantidad.delete(0, tk.END)
+                self.entrada_cantidad.insert(0, "1")
                 return
 
         self.carrito.append({
@@ -494,7 +694,7 @@ class PantallaCaja:
 
         self.actualizar_lista()
         self.actualizar_total()
-        self.entrada_id.delete(0, tk.END)
+        self._limpiar_busqueda_producto()
         self.entrada_cantidad.delete(0, tk.END)
         self.entrada_cantidad.insert(0, "1")
 
@@ -581,6 +781,7 @@ class PantallaCaja:
         self.entry_pago.delete(0, tk.END)
         self.entry_dni.delete(0, tk.END)
         self.entry_nombre.delete(0, tk.END)
+        self._ocultar_sugerencias_cliente()
         self.ajuste_tipo_var.set("ninguno")
         self.ajuste_modo_var.set("porcentaje")
         self.ajuste_valor_var.set("")
@@ -590,6 +791,9 @@ class PantallaCaja:
 
 
     def confirmar_venta(self):
+        if not self.permisos.get("usar_caja"):
+            return
+
         if not self.carrito:
             messagebox.showerror("Error", "No hay productos en la venta.")
             return
@@ -606,9 +810,21 @@ class PantallaCaja:
         nombre = self.entry_nombre.get().strip()
         dni = self.entry_dni.get().strip()
 
-        if forma in ["deuda", "debito"] and (not nombre or not dni):
-            messagebox.showerror("Error", "DNI y nombre son obligatorios para deuda.")
-            return
+        if forma in ["deuda", "debito"]:
+            cliente = self._resolver_cliente_para_pago()
+            if not cliente:
+                messagebox.showerror(
+                    "Error",
+                    "Para deuda o débito ingresá al menos un nombre, alias, DNI o referencia del cliente.",
+                )
+                return
+
+            dni = cliente.get("dni", "")
+            nombre = cliente.get("nombre", "")
+            self.entry_dni.delete(0, tk.END)
+            self.entry_dni.insert(0, dni)
+            self.entry_nombre.delete(0, tk.END)
+            self.entry_nombre.insert(0, nombre)
 
         if forma not in ["deuda", "debito"] and pago < total_final:
             messagebox.showerror("Error", "El pago es insuficiente.")
@@ -646,10 +862,11 @@ class PantallaCaja:
         self.master.destroy()
         nuevo_root = tk.Tk()
         self.ir_a_login(nuevo_root)
+        nuevo_root.mainloop()
 
     # --- POPUPS DE ADMINISTRACIÓN ---
     def abrir_popup_productos(self):
-        PantallaProductos(self.master)
+        PantallaProductos(self.master, solo_lectura=not self.permisos.get("gestionar_productos"))
 
     def abrir_popup_ventas(self):
         PantallaVentas(self.master)
@@ -665,6 +882,9 @@ class PantallaCaja:
 
     def abrir_popup_clientes(self):
         PantallaClientes(self.master)
+
+    def abrir_popup_reportes(self):
+        PantallaReportes(self.master)
 
     def abrir_popup_empleados(self):
         PantallaEmpleados(self.master)

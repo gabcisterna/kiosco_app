@@ -28,7 +28,7 @@ class PantallaDeudas:
 
         tk.Label(
             top_frame,
-            text="🔍 Buscar por DNI:",
+            text="🔍 Buscar por nombre, DNI o referencia:",
             bg=COLOR_FONDO,
             font=FUENTE_TITULO
         ).pack(side=tk.LEFT)
@@ -102,10 +102,15 @@ class PantallaDeudas:
             widget.destroy()
 
         deudas = cargar_deudas()
-        busqueda = self.busqueda_var.get().strip()
+        busqueda = self.busqueda_var.get().strip().lower()
 
         if busqueda:
-            deudas = [d for d in deudas if busqueda in str(d.get("dni", ""))]
+            deudas = [
+                d
+                for d in deudas
+                if busqueda in str(d.get("dni", "")).lower()
+                or busqueda in str(d.get("nombre", "")).lower()
+            ]
 
         orden = self.orden_var.get()
         reverse = orden == "Monto descendente"

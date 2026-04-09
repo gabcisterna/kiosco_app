@@ -2,11 +2,16 @@ import hashlib
 from datetime import datetime
 import os
 
-ARCHIVO_ACTIVACION = "activacion.txt"
-CLAVE_MAESTRA = "clave-super-secreta"  # Solo vos la sabés
+from modules.console import log
+from modules.rutas import ruta_en_base
+
+ARCHIVO_ACTIVACION = ruta_en_base("activacion.txt")
+CLAVE_MAESTRA = "clave-super-secreta"
+
 
 def hash_string(texto):
     return hashlib.sha256(texto.encode()).hexdigest()
+
 
 def generar_clave_mensual():
     fecha = datetime.now()
@@ -14,32 +19,31 @@ def generar_clave_mensual():
     hash_resultado = hashlib.sha256(clave_base.encode()).hexdigest()
     return hash_resultado[:8]
 
+
 def esta_activado():
     if not os.path.exists(ARCHIVO_ACTIVACION):
         return False
-    
-    with open(ARCHIVO_ACTIVACION, "r") as f:
-        contenido = f.read().strip()
-    
-    # Verifica activación permanente
+
+    with open(ARCHIVO_ACTIVACION, "r", encoding="utf-8") as archivo:
+        contenido = archivo.read().strip()
+
     if contenido == hash_string("PERMANENTE"):
         return True
 
-    # Verifica activación mensual
     ahora = datetime.now()
     valor_mes_actual = f"{ahora.year}-{ahora.month}"
     return contenido == hash_string(valor_mes_actual)
 
+
 def activar(metodo="mensual"):
-    with open(ARCHIVO_ACTIVACION, "w") as f:
+    with open(ARCHIVO_ACTIVACION, "w", encoding="utf-8") as archivo:
         if metodo == "permanente":
-            f.write(hash_string("PERMANENTE"))
+            archivo.write(hash_string("PERMANENTE"))
         elif metodo == "mensual":
             fecha = datetime.now()
             valor = f"{fecha.year}-{fecha.month}"
-            f.write(hash_string(valor))
+            archivo.write(hash_string(valor))
 
 
 if __name__ == "__main__":
-    print("Clave de este mes:", generar_clave_mensual())
-
+    log("Clave de este mes:", generar_clave_mensual())

@@ -1,45 +1,48 @@
-import os
 import json
+import os
 from datetime import datetime
 
-from modules.clientes import buscar_cliente, actualizar_cliente, agregar_cliente
-from modules.empleados import buscar_empleado, cargar_empleados
-from modules.productos import restar_stock, buscar_producto
+from modules.clientes import agregar_cliente, buscar_cliente
+from modules.console import log
 from modules.debito import registrar_pago_debito
 from modules.deudas import registrar_deuda
+from modules.empleados import cargar_empleados
+from modules.productos import buscar_producto, restar_stock
+from modules.rutas import asegurar_directorio, ruta_datos
 
-RUTA_VENTAS = os.path.join("data", "ventas.json")
+RUTA_VENTAS = ruta_datos("ventas.json")
 
 
 def cargar_ventas():
     if not os.path.exists(RUTA_VENTAS):
         return []
+
     with open(RUTA_VENTAS, "r", encoding="utf-8") as archivo:
         try:
             return json.load(archivo)
         except json.JSONDecodeError:
-            print("⚠️ Error al cargar ventas.json")
+            log("Error al cargar ventas.json")
             return []
 
 
 def guardar_ventas(ventas):
+    asegurar_directorio(RUTA_VENTAS)
     with open(RUTA_VENTAS, "w", encoding="utf-8") as archivo:
         json.dump(ventas, archivo, ensure_ascii=False, indent=4)
 
 
 def obtener_empleado_activo():
     empleados = cargar_empleados()
-    for emp in empleados:
-        if emp.get("activo"):
-            return emp
+    for empleado in empleados:
+        if empleado.get("activo"):
+            return empleado
     return None
 
 
 def registrar_venta(productos_vendidos, forma_pago, cliente_dni=None, cliente_nombre=None, ajuste=None):
     empleado = obtener_empleado_activo()
-
     if not empleado:
-        print("❌ No hay ningún empleado activo.")
+        log("Error: no hay ningún empleado activo.")
         return False
 
     empleado_id = empleado["id"]
@@ -47,9 +50,8 @@ def registrar_venta(productos_vendidos, forma_pago, cliente_dni=None, cliente_no
 
     if cliente_dni:
         cliente = buscar_cliente(cliente_dni)
-
         if not cliente:
-            print(f"⚠️ Cliente con DNI {cliente_dni} no encontrado. Se registrará automáticamente.")
+            log(f"Aviso: cliente con DNI {cliente_dni} no encontrado. Se registrará automáticamente.")
             cliente = {
                 "dni": cliente_dni,
                 "nombre": cliente_nombre,
@@ -59,42 +61,43 @@ def registrar_venta(productos_vendidos, forma_pago, cliente_dni=None, cliente_no
         else:
             cliente_nombre = cliente["nombre"]
 
-    subtotal_venta = 0
+    subtotal_venta = 0.0
     detalle_productos = []
 
     for item in productos_vendidos:
         producto = buscar_producto(item["id"])
-
         if not producto:
+            log(f"Error: producto con ID {item['id']} no encontrado.")
             return False
 
         if producto["stock_actual"] < item["cantidad"]:
-            print(f"❌ No hay suficiente stock para el producto {producto['nombre']}.")
+            log(f"Error: no hay suficiente stock para el producto {producto['nombre']}.")
             return False
 
         precio_unitario = float(producto["precio"])
         subtotal = precio_unitario * item["cantidad"]
         subtotal_venta += subtotal
 
-        detalle_productos.append({
-            "id": producto["id"],
-            "nombre": producto["nombre"],
-            "cantidad": item["cantidad"],
-            "precio_unitario": round(precio_unitario, 2),
-            "subtotal": round(subtotal, 2)
-        })
+        detalle_productos.append(
+            {
+                "id": producto["id"],
+                "nombre": producto["nombre"],
+                "cantidad": item["cantidad"],
+                "precio_unitario": round(precio_unitario, 2),
+                "subtotal": round(subtotal, 2),
+            }
+        )
 
     ajuste = ajuste or {
         "tipo": None,
         "modo": None,
         "valor": 0,
-        "importe_aplicado": 0
+        "importe_aplicado": 0,
     }
 
     tipo_ajuste = ajuste.get("tipo")
     modo_ajuste = ajuste.get("modo")
     valor_ajuste = float(ajuste.get("valor", 0) or 0)
-
     importe_aplicado = 0.0
 
     if tipo_ajuste in ["descuento", "interes"] and modo_ajuste in ["porcentaje", "monto"] and valor_ajuste > 0:
@@ -119,49 +122,46 @@ def registrar_venta(productos_vendidos, forma_pago, cliente_dni=None, cliente_no
         "tipo": tipo_ajuste,
         "modo": modo_ajuste,
         "valor": round(valor_ajuste, 2),
-        "importe_aplicado": importe_aplicado
+        "importe_aplicado": importe_aplicado,
     }
 
     if forma_pago == "debito":
         if not cliente:
-            print("❌ No se puede registrar un pago por débito sin un cliente.")
+            log("Error: no se puede registrar un pago por débito sin un cliente.")
             return False
-
     elif forma_pago == "deuda":
         if not cliente:
-            print("❌ No se puede fiar una venta sin un cliente.")
+            log("Error: no se puede fiar una venta sin un cliente.")
             return False
-
     elif forma_pago != "efectivo":
-        print("⚠️ Forma de pago inválida. Use 'efectivo', 'debito' o 'deuda'.")
+        log("Aviso: forma de pago inválida. Use 'efectivo', 'debito' o 'deuda'.")
         return False
 
     for item in productos_vendidos:
-        restar_stock(item["id"], item["cantidad"])
+        if not restar_stock(item["id"], item["cantidad"]):
+            return False
 
     if forma_pago == "debito":
-        registrar_pago_debito(cliente_dni, total_final, cliente_nombre)
-
+        if not registrar_pago_debito(cliente_dni, total_final, cliente_nombre):
+            return False
     elif forma_pago == "deuda":
-        registrar_deuda(cliente_dni, detalle_productos, total_final, cliente_nombre)
-        cliente["deuda"] += total_final
-        actualizar_cliente(cliente_dni, {"deuda": cliente["deuda"]})
+        if not registrar_deuda(cliente_dni, detalle_productos, total_final, cliente_nombre):
+            return False
 
     ventas = cargar_ventas()
-
-    nueva_venta = {
-        "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "empleado_id": empleado_id,
-        "cliente_dni": cliente_dni if cliente else None,
-        "forma_pago": forma_pago,
-        "subtotal": round(subtotal_venta, 2),
-        "ajuste": ajuste_guardado,
-        "total": total_final,
-        "productos": detalle_productos
-    }
-
-    ventas.append(nueva_venta)
+    ventas.append(
+        {
+            "fecha": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "empleado_id": empleado_id,
+            "cliente_dni": cliente_dni if cliente else None,
+            "forma_pago": forma_pago,
+            "subtotal": round(subtotal_venta, 2),
+            "ajuste": ajuste_guardado,
+            "total": total_final,
+            "productos": detalle_productos,
+        }
+    )
     guardar_ventas(ventas)
 
-    print("✅ Venta registrada correctamente.")
+    log("Venta registrada correctamente.")
     return True

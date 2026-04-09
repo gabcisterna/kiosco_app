@@ -1,193 +1,208 @@
 import tkinter as tk
-from tkinter import ttk, messagebox
 from datetime import datetime
+from tkinter import scrolledtext, ttk
+
 from modules.deudas import cargar_registro_deudas
-from modules.debito import cargar_registro_debito
-import os, json
 
 
 class PantallaRegistros:
     def __init__(self, master):
         self.master = tk.Toplevel(master)
-        self.master.title("Registros de Pagos y Deudas")
-        self.master.geometry("1300x650")
-        self.master.configure(bg='#f0f0f0')
+        self.master.title("Registros de Deudas")
+        self.master.geometry("1180x640")
+        self.master.configure(bg="#f0f0f0")
 
         self.orden_var = tk.StringVar(value="Fecha descendente")
+        self.registros_por_item = {}
 
-        top_frame = tk.Frame(self.master, bg='#f0f0f0')
-        top_frame.pack(pady=10, padx=10, fill=tk.X)
+        top_frame = tk.Frame(self.master, bg="#f0f0f0")
+        top_frame.pack(pady=10, padx=12, fill=tk.X)
 
         tk.Label(
             top_frame,
             text="Ordenar por:",
-            bg='#f0f0f0',
-            font=("Segoe UI", 10)
+            bg="#f0f0f0",
+            font=("Segoe UI", 10),
         ).pack(side=tk.LEFT, padx=5)
 
         opciones_orden = [
             "Fecha descendente",
             "Fecha ascendente",
             "Monto descendente",
-            "Monto ascendente"
+            "Monto ascendente",
         ]
         self.combo_orden = ttk.Combobox(
             top_frame,
             values=opciones_orden,
             state="readonly",
             textvariable=self.orden_var,
-            width=25
+            width=25,
         )
         self.combo_orden.pack(side=tk.LEFT, padx=5)
-        self.combo_orden.bind("<<ComboboxSelected>>", lambda e: self.actualizar_listas())
+        self.combo_orden.bind("<<ComboboxSelected>>", lambda event: self.actualizar_lista())
 
-        # Paneles para dos listas
-        listas_frame = tk.Frame(self.master, bg='#f0f0f0')
-        listas_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        tk.Label(
+            self.master,
+            text="Doble click en un movimiento para abrir el detalle.",
+            bg="#f0f0f0",
+            fg="#555",
+            font=("Segoe UI", 10),
+        ).pack(anchor="w", padx=18)
 
-        # Registro de deudas
-        frame_deudas = tk.LabelFrame(
-            listas_frame,
-            text="Registros de Deudas",
+        frame = tk.LabelFrame(
+            self.master,
+            text="Movimientos de deuda",
             font=("Segoe UI", 11, "bold"),
             bg="#f0f0f0",
-            fg="#333"
+            fg="#333",
         )
-        frame_deudas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
+        frame.pack(fill=tk.BOTH, expand=True, padx=12, pady=10)
 
-        columnas_deudas = ("fecha", "dni", "nombre", "detalle", "monto", "tipo")
-        self.tree_deudas = ttk.Treeview(frame_deudas, columns=columnas_deudas, show="headings")
+        columnas = ("fecha", "dni", "nombre", "tipo", "detalle", "monto")
+        self.tree = ttk.Treeview(frame, columns=columnas, show="headings")
+        self.tree.pack(fill=tk.BOTH, expand=True)
+        self.tree.bind("<Double-1>", self.abrir_detalle_registro)
 
-        self.tree_deudas.heading("fecha", text="Fecha")
-        self.tree_deudas.heading("dni", text="DNI")
-        self.tree_deudas.heading("nombre", text="Nombre")
-        self.tree_deudas.heading("detalle", text="Detalle")
-        self.tree_deudas.heading("monto", text="Monto")
-        self.tree_deudas.heading("tipo", text="Tipo")
+        self.tree.heading("fecha", text="Fecha")
+        self.tree.heading("dni", text="DNI")
+        self.tree.heading("nombre", text="Nombre")
+        self.tree.heading("tipo", text="Tipo")
+        self.tree.heading("detalle", text="Detalle")
+        self.tree.heading("monto", text="Monto")
 
-        for col in columnas_deudas:
-            self.tree_deudas.column(col, anchor="center", width=120)
-
-        self.tree_deudas.column("fecha", width=120, anchor="center")
-        self.tree_deudas.column("dni", width=90, anchor="center")
-        self.tree_deudas.column("nombre", width=130, anchor="center")
-        self.tree_deudas.column("detalle", width=360, anchor="w")
-        self.tree_deudas.column("monto", width=100, anchor="center")
-        self.tree_deudas.column("tipo", width=100, anchor="center")
-
-        self.tree_deudas.pack(fill=tk.BOTH, expand=True)
-
-        # Registro de débitos
-        frame_debitos = tk.LabelFrame(
-            listas_frame,
-            text="Registros de Pagos (Débito)",
-            font=("Segoe UI", 11, "bold"),
-            bg="#f0f0f0",
-            fg="#333"
-        )
-        frame_debitos.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-
-        columnas_debitos = ("fecha", "dni", "nombre", "monto")
-        self.tree_debitos = ttk.Treeview(frame_debitos, columns=columnas_debitos, show="headings")
-
-        self.tree_debitos.heading("fecha", text="Fecha")
-        self.tree_debitos.heading("dni", text="DNI")
-        self.tree_debitos.heading("nombre", text="Nombre")
-        self.tree_debitos.heading("monto", text="Monto")
-
-        for col in columnas_debitos:
-            self.tree_debitos.column(col, anchor="center", width=120)
-
-        self.tree_debitos.column("fecha", width=120, anchor="center")
-        self.tree_debitos.column("dni", width=90, anchor="center")
-        self.tree_debitos.column("nombre", width=130, anchor="center")
-        self.tree_debitos.column("monto", width=100, anchor="center")
-
-        self.tree_debitos.pack(fill=tk.BOTH, expand=True)
+        self.tree.column("fecha", width=130, anchor="center")
+        self.tree.column("dni", width=90, anchor="center")
+        self.tree.column("nombre", width=150, anchor="center")
+        self.tree.column("tipo", width=100, anchor="center")
+        self.tree.column("detalle", width=560, anchor="w")
+        self.tree.column("monto", width=110, anchor="center")
 
         style = ttk.Style()
         style.configure("Treeview", font=("Segoe UI", 10), rowheight=26)
         style.configure("Treeview.Heading", font=("Segoe UI", 10, "bold"))
 
-        self.actualizar_listas()
+        self.actualizar_lista()
 
-    def actualizar_listas(self):
-        self.tree_deudas.delete(*self.tree_deudas.get_children())
-        self.tree_debitos.delete(*self.tree_debitos.get_children())
-
-        deudas = cargar_registro_deudas()
-        debitos = cargar_registro_debito(os.path.join("data", "registro_debitos.json"), [])
-
-        orden = self.orden_var.get()
-        reverse = "descendente" in orden
-        clave = "fecha" if "Fecha" in orden else "monto"
-
-        deudas.sort(
-            key=lambda d: self.obtener_fecha(d["fecha"]) if clave == "fecha" else d.get("monto", 0),
-            reverse=reverse
-        )
-        debitos.sort(
-            key=lambda d: self.obtener_fecha(d["fecha"]) if clave == "fecha" else d.get("monto", 0),
-            reverse=reverse
-        )
-
-        for r in deudas:
-            fecha = self.formatear_fecha(r.get("fecha"))
-            tipo = r.get("tipo", "General")
-        
-            detalle_lista = r.get("detalle", [])
-        
-            if detalle_lista:
-                partes = []
-                for d in detalle_lista:
-                    cantidad = d.get("cantidad", d.get("cantidad_total", 0))
-                    nombre = d.get("nombre", "")
-                    subtotal = d.get("subtotal")
-        
-                    if subtotal is not None:
-                        partes.append(f"{cantidad}x {nombre} (${subtotal:.2f})")
-                    else:
-                        partes.append(f"{cantidad}x {nombre}")
-        
-                detalle_txt = ", ".join(partes)
-            else:
-                detalle_txt = "-"
-        
-            self.tree_deudas.insert(
-                "",
-                tk.END,
-                values=(
-                    fecha,
-                    r.get("dni", ""),
-                    r.get("nombre", ""),
-                    detalle_txt,
-                    f"${r.get('monto', 0):.2f}",
-                    tipo
-                )
-            )
-
-        for r in debitos:
-            fecha = self.formatear_fecha(r.get("fecha"))
-            self.tree_debitos.insert(
-                "",
-                tk.END,
-                values=(
-                    fecha,
-                    r.get("dni", ""),
-                    r.get("nombre", ""),
-                    f"${r.get('monto', 0):.2f}"
-                )
-            )
-
-    def obtener_fecha(self, fecha_str):
+    def _obtener_fecha(self, fecha_str):
         try:
             return datetime.strptime(fecha_str, "%Y-%m-%d %H:%M:%S")
         except Exception:
             return datetime.min
 
-    def formatear_fecha(self, fecha_str):
+    def _formatear_fecha(self, fecha_str):
         try:
-            dt = datetime.strptime(fecha_str, "%Y-%m-%d %H:%M:%S")
-            return dt.strftime("%d-%b %H:%M")
-        except:
+            fecha = datetime.strptime(fecha_str, "%Y-%m-%d %H:%M:%S")
+            return fecha.strftime("%d-%b %H:%M")
+        except Exception:
             return fecha_str
+
+    def _detalle_resumido(self, registro):
+        detalle_lista = registro.get("detalle", [])
+        if not detalle_lista:
+            return "-"
+
+        partes = []
+        for detalle in detalle_lista:
+            cantidad = detalle.get("cantidad", detalle.get("cantidad_total", 0))
+            nombre = detalle.get("nombre", "")
+            subtotal = detalle.get("subtotal")
+            if subtotal is not None:
+                partes.append(f"{cantidad}x {nombre} (${subtotal:.2f})")
+            else:
+                partes.append(f"{cantidad}x {nombre}")
+        return ", ".join(partes)
+
+    def actualizar_lista(self):
+        self.tree.delete(*self.tree.get_children())
+        self.registros_por_item.clear()
+
+        registros = cargar_registro_deudas()
+        orden = self.orden_var.get()
+        reverse = "descendente" in orden
+        clave = "fecha" if "Fecha" in orden else "monto"
+
+        registros.sort(
+            key=lambda registro: self._obtener_fecha(registro["fecha"]) if clave == "fecha" else registro.get("monto", 0),
+            reverse=reverse,
+        )
+
+        for indice, registro in enumerate(registros):
+            item_id = f"registro_{indice}"
+            self.tree.insert(
+                "",
+                tk.END,
+                iid=item_id,
+                values=(
+                    self._formatear_fecha(registro.get("fecha")),
+                    registro.get("dni", ""),
+                    registro.get("nombre", ""),
+                    registro.get("tipo", "General"),
+                    self._detalle_resumido(registro),
+                    f"${registro.get('monto', 0):.2f}",
+                ),
+            )
+            self.registros_por_item[item_id] = registro
+
+    def abrir_detalle_registro(self, event=None):
+        item_id = self.tree.focus()
+        if not item_id:
+            return
+
+        registro = self.registros_por_item.get(item_id)
+        if not registro:
+            return
+
+        lineas = [
+            f"Fecha: {registro.get('fecha', '')}",
+            f"Tipo: {registro.get('tipo', 'General')}",
+            f"DNI: {registro.get('dni', '')}",
+            f"Nombre: {registro.get('nombre', '')}",
+            f"Monto: ${registro.get('monto', 0):.2f}",
+            "",
+            "Detalle:",
+        ]
+
+        detalle = registro.get("detalle", [])
+        if detalle:
+            for item in detalle:
+                cantidad = item.get("cantidad", item.get("cantidad_total", 0))
+                lineas.append(f"- {cantidad} x {item.get('nombre', '')} | ID {item.get('id', '-')}")
+                if "precio_unitario" in item or "subtotal" in item:
+                    lineas.append(
+                        f"  Precio unitario: ${item.get('precio_unitario', 0):.2f} | "
+                        f"Subtotal: ${item.get('subtotal', 0):.2f}"
+                    )
+                if "cantidad_pagada" in item:
+                    lineas.append(f"  Pagado: {item.get('cantidad_pagada', 0)}")
+        else:
+            lineas.append("- Sin detalle adicional")
+
+        self._mostrar_popup_detalle("Detalle del movimiento", "\n".join(lineas))
+
+    def _mostrar_popup_detalle(self, titulo, contenido):
+        ventana = tk.Toplevel(self.master)
+        ventana.title(titulo)
+        ventana.geometry("760x560")
+        ventana.configure(bg="#f7f7f7")
+        ventana.transient(self.master)
+
+        tk.Label(
+            ventana,
+            text=titulo,
+            font=("Segoe UI", 14, "bold"),
+            bg="#f7f7f7",
+            fg="#222",
+        ).pack(anchor="w", padx=16, pady=(14, 6))
+
+        texto = scrolledtext.ScrolledText(
+            ventana,
+            wrap=tk.WORD,
+            font=("Consolas", 11),
+            bg="white",
+            fg="#222",
+            relief="solid",
+            bd=1,
+        )
+        texto.pack(fill=tk.BOTH, expand=True, padx=16, pady=(0, 16))
+        texto.insert("1.0", contenido)
+        texto.configure(state="disabled")

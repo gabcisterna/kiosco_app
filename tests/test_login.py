@@ -1,50 +1,43 @@
-import sys
-import os
+import json
+import unittest
 
-# Agrega la raíz del proyecto a sys.path para que funcione el import
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+from modules import login as login_module
+from modules.empleados import cargar_empleados, guardar_empleados
+from modules.login import cerrar_sesion, registrar_inicio_sesion
+from tests.common import isolated_data_env
 
-from modules import login, empleados
 
-def main():
-    print("🔐 Probando funciones de inicio y cierre de sesión...\n")
+class LoginTests(unittest.TestCase):
+    def test_login_handles_employees_without_usuario(self):
+        with isolated_data_env():
+            guardar_empleados(
+                [
+                    {
+                        "id": "1",
+                        "nombre": "Ana",
+                        "correo": "ana@example.com",
+                        "puesto": "Dueño",
+                        "activo": False,
+                    }
+                ]
+            )
 
-    print("📦 Preparando empleados de prueba...")
-    empleados_prueba = [
-        {"usuario": "juan", "nombre": "Juan Pérez", "activo": False},
-        {"usuario": "ana", "nombre": "Ana Gómez", "activo": False}
-    ]
-    empleados.guardar_empleados(empleados_prueba)
+            self.assertTrue(registrar_inicio_sesion("ana@example.com"))
 
-    print("\n➡️ Caso 1: iniciar sesión con usuario válido")
-    login.registrar_inicio_sesion("juan")
+            empleado = cargar_empleados()[0]
+            self.assertTrue(empleado["activo"])
+            self.assertEqual(empleado["usuario"], "ana@example.com")
 
-    print("\n➡️ Verificando que solo 'juan' esté activo")
-    datos = empleados.cargar_empleados()
-    for e in datos:
-        estado = "🟢 ACTIVO" if e["activo"] else "⚪ INACTIVO"
-        print(f"{e['usuario']}: {estado}")
+            with open(login_module.RUTA_TURNOS, "r", encoding="utf-8") as archivo:
+                turnos = json.load(archivo)
 
-    print("\n➡️ Caso 2: iniciar sesión con otro usuario (ana)")
-    login.registrar_inicio_sesion("ana")
+            self.assertEqual(turnos[0]["empleado"], "Ana")
+            self.assertEqual(turnos[0]["usuario"], "ana@example.com")
+            self.assertIsNone(turnos[0]["fin"])
 
-    print("\n➡️ Verificando que solo 'ana' esté activa")
-    datos = empleados.cargar_empleados()
-    for e in datos:
-        estado = "🟢 ACTIVO" if e["activo"] else "⚪ INACTIVO"
-        print(f"{e['usuario']}: {estado}")
+            self.assertTrue(cerrar_sesion())
 
-    print("\n➡️ Caso 3: iniciar sesión con usuario inexistente")
-    login.registrar_inicio_sesion("noexiste")
+            with open(login_module.RUTA_TURNOS, "r", encoding="utf-8") as archivo:
+                turnos = json.load(archivo)
 
-    print("\n➡️ Caso 4: cerrar sesión")
-    login.cerrar_sesion()
-
-    print("\n➡️ Verificando que todos estén inactivos")
-    datos = empleados.cargar_empleados()
-    for e in datos:
-        estado = "🟢 ACTIVO" if e["activo"] else "⚪ INACTIVO"
-        print(f"{e['usuario']}: {estado}")
-
-if __name__ == "__main__":
-    main()
+            self.assertIsNotNone(turnos[0]["fin"])
