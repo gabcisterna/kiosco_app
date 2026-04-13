@@ -2,7 +2,7 @@ import json
 import os
 from datetime import datetime
 
-from modules.clientes import agregar_cliente, buscar_cliente
+from modules.clientes import resolver_cliente_para_venta
 from modules.console import log
 from modules.debito import registrar_pago_debito
 from modules.deudas import registrar_deuda
@@ -48,18 +48,15 @@ def registrar_venta(productos_vendidos, forma_pago, cliente_dni=None, cliente_no
     empleado_id = empleado["id"]
     cliente = None
 
-    if cliente_dni:
-        cliente = buscar_cliente(cliente_dni)
-        if not cliente:
-            log(f"Aviso: cliente con DNI {cliente_dni} no encontrado. Se registrará automáticamente.")
-            cliente = {
-                "dni": cliente_dni,
-                "nombre": cliente_nombre,
-                "deuda": 0,
-            }
-            agregar_cliente(cliente)
-        else:
-            cliente_nombre = cliente["nombre"]
+    if cliente_dni or cliente_nombre:
+        cliente = resolver_cliente_para_venta(
+            dni=cliente_dni,
+            nombre=cliente_nombre,
+            crear_si_no_existe=True,
+        )
+        if cliente:
+            cliente_dni = cliente.get("dni")
+            cliente_nombre = cliente.get("nombre")
 
     subtotal_venta = 0.0
     detalle_productos = []

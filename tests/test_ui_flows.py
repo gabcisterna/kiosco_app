@@ -3,6 +3,7 @@ from unittest.mock import MagicMock, patch
 
 from modules.productos import guardar_productos
 from tests.common import isolated_data_env
+from ui.pantalla_login import limpiar_ventana_principal
 from ui.pantalla_principal import PantallaCaja
 
 
@@ -40,21 +41,27 @@ class DummyListbox:
 
 
 class UIFlowTests(unittest.TestCase):
-    def test_cerrar_sesion_vuelve_al_login_y_arranca_el_nuevo_mainloop(self):
+    def test_limpiar_ventana_principal_libera_callback_responsive(self):
+        master = MagicMock()
+        master.winfo_children.return_value = []
+        pantalla_activa = MagicMock()
+        master._pantalla_activa = pantalla_activa
+
+        limpiar_ventana_principal(master)
+
+        pantalla_activa.liberar_recursos.assert_called_once_with()
+        master.unbind.assert_any_call("<Configure>")
+
+    def test_cerrar_sesion_vuelve_al_login_en_la_misma_ventana(self):
         pantalla = PantallaCaja.__new__(PantallaCaja)
         pantalla.master = MagicMock()
         pantalla.ir_a_login = MagicMock()
 
-        nuevo_root = MagicMock()
-        with patch("ui.pantalla_principal.cerrar_sesion") as cerrar_sesion_mock, patch(
-            "ui.pantalla_principal.tk.Tk", return_value=nuevo_root
-        ):
+        with patch("ui.pantalla_principal.cerrar_sesion") as cerrar_sesion_mock:
             PantallaCaja.cerrar_sesion_y_volver_al_login(pantalla)
 
         cerrar_sesion_mock.assert_called_once_with()
-        pantalla.master.destroy.assert_called_once_with()
-        pantalla.ir_a_login.assert_called_once_with(nuevo_root)
-        nuevo_root.mainloop.assert_called_once_with()
+        pantalla.ir_a_login.assert_called_once_with(pantalla.master)
 
     def test_resolver_producto_desde_entrada_acepta_nombre_e_id_en_sugerencia(self):
         with isolated_data_env():

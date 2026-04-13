@@ -316,5 +316,74 @@
                 "subtotal": 150.0
             }
         ]
+    },
+    {
+        "fecha": "2026-04-09 20:57:54",
+        "empleado_id": "1",
+        "cliente_dni": "CLI-0001",
+        "forma_pago": "deuda",
+        "subtotal": 100.0,
+        "ajuste": {
+            "tipo": "ninguno",
+            "modo": "porcentaje",
+            "valor": 0.0,
+            "importe_aplicado": 0.0
+        },
+        "total": 100.0,
+        "productos": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 1,
+                "precio_unitario": 100.0,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-04-11 16:58:50",
+        "empleado_id": "1",
+        "cliente_dni": "44973930",
+        "forma_pago": "deuda",
+        "subtotal": 100.0,
+        "ajuste": {
+            "tipo": "descuento",
+            "modo": "monto",
+            "valor": 10.0,
+            "importe_aplicado": 10.0
+        },
+        "total": 90.0,
+        "productos": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 1,
+                "precio_unitario": 100.0,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-04-13 14:03:25",
+        "empleado_id": "1",
+        "cliente_dni": "CLI-0002",
+        "forma_pago": "deuda",
+        "subtotal": 150.0,
+        "ajuste": {
+            "tipo": "interes",
+            "modo": "monto",
+            "valor": 200.0,
+            "importe_aplicado": 200.0
+        },
+        "total": 350.0,
+        "productos": [
+            {
+                "id": 2,
+                "nombre": "pepsi",
+                "cantidad": 1,
+                "precio_unitario": 150.0,
+                "subtotal": 150.0
+            }
+        ]
     }
 ]

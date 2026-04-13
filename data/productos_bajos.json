@@ -3,7 +3,7 @@
         "id": 2,
         "nombre": "pepsi",
         "precio": 150.0,
-        "stock_actual": 5,
+        "stock_actual": 4,
         "stock_minimo": 15
     },
     {
@@ -17,7 +17,7 @@
         "id": 1,
         "nombre": "coca",
         "precio": 100.0,
-        "stock_actual": 3,
+        "stock_actual": 1,
         "stock_minimo": 5
     }
 ]

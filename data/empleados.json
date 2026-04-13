@@ -8,43 +8,11 @@
         "activo": false
     },
     {
+        "nombre": "agus",
         "id": "2",
-        "nombre": "gaby",
-        "correo": "gaby",
-        "puesto": "Encargado",
-        "usuario": "gaby",
-        "activo": false
-    },
-    {
-        "nombre": "hola",
-        "id": "3",
-        "correo": "hola",
+        "correo": "agus",
         "puesto": "Cajero",
-        "usuario": "hola",
-        "activo": false
-    },
-    {
-        "nombre": "choto",
-        "id": "4",
-        "correo": "vos",
-        "puesto": "Encargado",
-        "usuario": "vos",
-        "activo": false
-    },
-    {
-        "id": "5",
-        "nombre": "gaga",
-        "correo": "gaga",
-        "puesto": "Consulta productos",
-        "usuario": "gaga",
-        "activo": false
-    },
-    {
-        "id": "6",
-        "nombre": "jaja",
-        "correo": "jaja",
-        "puesto": "Repositor",
-        "usuario": "jaja",
+        "usuario": "agus",
         "activo": false
     }
 ]

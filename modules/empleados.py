@@ -96,6 +96,10 @@ _ALIAS_PUESTOS = {
 }
 
 
+def normalizar_correo(correo):
+    return str(correo or "").strip().lower()
+
+
 def _clave_puesto(puesto):
     texto = str(puesto or "").strip().lower()
     if not texto:
@@ -134,7 +138,7 @@ def empleado_tiene_permiso(empleado, permiso):
 def _normalizar_empleado(empleado):
     empleado_normalizado = dict(empleado)
     nombre = str(empleado_normalizado.get("nombre", "")).strip()
-    correo = str(empleado_normalizado.get("correo", "")).strip()
+    correo = normalizar_correo(empleado_normalizado.get("correo", ""))
 
     empleado_normalizado["id"] = str(empleado_normalizado.get("id", "")).strip()
     empleado_normalizado["nombre"] = nombre
@@ -172,11 +176,32 @@ def guardar_empleados(empleados):
         json.dump(empleados_normalizados, archivo, ensure_ascii=False, indent=4)
 
 
+def buscar_empleado_por_correo(correo):
+    correo_normalizado = normalizar_correo(correo)
+    if not correo_normalizado:
+        return None
+
+    for empleado in cargar_empleados():
+        if normalizar_correo(empleado.get("correo")) == correo_normalizado:
+            return empleado
+    return None
+
+
 def agregar_empleado(nuevo_empleado):
     nuevo_empleado = _normalizar_empleado(nuevo_empleado)
     empleados = cargar_empleados()
+    if not empleados:
+        nuevo_empleado["puesto"] = PUESTO_DUENO
+
     if any(empleado["id"] == nuevo_empleado["id"] for empleado in empleados):
         log(f"Aviso: ya existe un empleado con ID {nuevo_empleado['id']}.")
+        return False
+
+    correo_nuevo = normalizar_correo(nuevo_empleado.get("correo"))
+    if correo_nuevo and any(
+        normalizar_correo(empleado.get("correo")) == correo_nuevo for empleado in empleados
+    ):
+        log(f"Aviso: ya existe un empleado con correo {correo_nuevo}.")
         return False
 
     empleados.append(nuevo_empleado)

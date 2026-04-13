@@ -1,0 +1,71 @@
+Inicio de sesión registrado para Ana
+Inicio de sesión registrado para Ana
+Inicio de sesión registrado para Ana
+Inicio de sesión registrado para Ana
+Inicio de sesión registrado para Ana
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 169, in _aplicar_layout_responsive
+    self.izquierda_frame.pack(fill=tk.BOTH, expand=True)
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 2483, in pack_configure
+    self.tk.call(
+_tkinter.TclError: bad window path name ".!frame2.!frame2.!frame"
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 169, in _aplicar_layout_responsive
+    self.izquierda_frame.pack(fill=tk.BOTH, expand=True)
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 2483, in pack_configure
+    self.tk.call(
+_tkinter.TclError: bad window path name ".!frame4.!frame2.!frame"
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 169, in _aplicar_layout_responsive
+    self.izquierda_frame.pack(fill=tk.BOTH, expand=True)
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 2483, in pack_configure
+    self.tk.call(
+_tkinter.TclError: bad window path name ".!frame6.!frame2.!frame"
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 169, in _aplicar_layout_responsive
+    self.izquierda_frame.pack(fill=tk.BOTH, expand=True)
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 2483, in pack_configure
+    self.tk.call(
+_tkinter.TclError: bad window path name ".!frame2.!frame2.!frame"
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 169, in _aplicar_layout_responsive
+    self.izquierda_frame.pack(fill=tk.BOTH, expand=True)
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 2483, in pack_configure
+    self.tk.call(
+_tkinter.TclError: bad window path name ".!frame4.!frame2.!frame"
+
+Inicio de sesión registrado para Ana

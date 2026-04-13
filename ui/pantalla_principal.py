@@ -22,8 +22,22 @@ class PantallaCaja:
     def __init__(self, master, ir_a_login):
         self.master = master
         self.ir_a_login = ir_a_login
-        self.master.title("Caja - Supermercado")
-        self.master.configure(bg="#f0f4f8")
+        self.master._pantalla_activa = self
+        self.master.title("Caja y Ventas - Kiosco App")
+        self.color_fondo = "#edf3f8"
+        self.color_tarjeta = "#ffffff"
+        self.color_borde = "#d8e2ec"
+        self.color_texto = "#1f2937"
+        self.color_secundario = "#5b6470"
+        self.color_primario = "#0f4c81"
+        self.color_primario_hover = "#0b3d68"
+        self.color_exito = "#1f8f5f"
+        self.color_exito_hover = "#18714b"
+        self.color_peligro = "#c2413b"
+        self.color_peligro_hover = "#9f312c"
+        self.color_alerta = "#d97706"
+        self.color_alerta_hover = "#b65f05"
+        self.master.configure(bg=self.color_fondo)
         self.master.attributes('-fullscreen', True)
         self.master.bind("<Escape>", lambda e: self.master.attributes("-fullscreen", False))
         self.master.bind("<Return>", self.agregar_producto)
@@ -31,12 +45,19 @@ class PantallaCaja:
         self.ajuste_tipo_var = tk.StringVar(value="ninguno")       # ninguno / descuento / interes
         self.ajuste_modo_var = tk.StringVar(value="porcentaje")    # porcentaje / monto
         self.ajuste_valor_var = tk.StringVar(value="")
+        self.ajuste_resumen_var = tk.StringVar(value="Subtotal: $0.00 | Sin ajuste aplicado")
         self.ajuste_info_label = None
-
+        self.boton_ajuste = None
+        self.ventana_ajuste = None
+        self._layout_actual = None
+        self._layout_job = None
 
         self.carrito = []
         self.empleado = obtener_empleado_activo()
         self.permisos = obtener_permisos_empleado(self.empleado)
+        self.label_resumen_carrito = None
+        self.actualizar_total = self._actualizar_total_responsive
+        self.limpiar_despues_de_venta = self._limpiar_despues_de_venta_responsive
 
         # Fuentes
         self.font_lista = font.Font(family="Segoe UI", size=14, weight="bold")
@@ -44,22 +65,24 @@ class PantallaCaja:
         self.font_pequena = font.Font(family="Segoe UI", size=10)
         self.font_busqueda = font.Font(family="Segoe UI", size=17, weight="bold")
         self.font_sugerencias = font.Font(family="Segoe UI", size=12)
+        self.font_titulo = font.Font(family="Segoe UI", size=18, weight="bold")
+        self.font_subtitulo = font.Font(family="Segoe UI", size=10)
+        self._configurar_estilos()
 
-        main_frame = tk.Frame(master, bg="#f0f4f8", padx=20, pady=20)
-        main_frame.pack(fill=tk.BOTH, expand=True)
+        self.main_frame = tk.Frame(master, bg=self.color_fondo, padx=20, pady=20)
+        self.main_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.crear_barra_superior_completa(main_frame)
+        self.crear_barra_superior_completa(self.main_frame)
 
         if not self.permisos.get("usar_caja"):
-            self.crear_panel_sin_caja(main_frame)
+            self.crear_panel_sin_caja(self.main_frame)
             return
 
-        # Dividir en dos columnas
-        self.izquierda_frame = tk.Frame(main_frame, bg="#f0f4f8")
-        self.izquierda_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.contenido_frame = tk.Frame(self.main_frame, bg=self.color_fondo)
+        self.contenido_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.derecha_frame = tk.Frame(main_frame, bg="#f0f4f8")
-        self.derecha_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(20, 0))
+        self.izquierda_frame = tk.Frame(self.contenido_frame, bg=self.color_fondo)
+        self.derecha_frame = tk.Frame(self.contenido_frame, bg=self.color_fondo)
 
         # Parte izquierda
         self.crear_lista_productos(self.izquierda_frame)
@@ -70,19 +93,131 @@ class PantallaCaja:
 
         # Parte derecha
         self.crear_info_pago(self.derecha_frame)
-        self.crear_total_y_vuelto(self.derecha_frame)
+        self.crear_total_y_vuelto_responsive(self.derecha_frame)
 
         # Ahora los botones van en la derecha, debajo del total y vuelto:
         self.crear_botones_y_finalizar(self.derecha_frame)
+        self.actualizar_lista()
+        self.actualizar_total()
+        self.master.bind("<Configure>", self._programar_layout_responsive)
+        self.master.after_idle(self._aplicar_layout_responsive)
 
-    def calcular_totales_con_ajuste(self):
-        subtotal = sum(p["cantidad"] * p["precio"] for p in self.carrito)
+    def _configurar_estilos(self):
+        style = ttk.Style()
+        try:
+            style.theme_use("clam")
+        except tk.TclError:
+            pass
 
-        tipo = self.ajuste_tipo_var.get()
-        modo = self.ajuste_modo_var.get()
+        style.configure(
+            "Caja.Treeview",
+            background="white",
+            fieldbackground="white",
+            foreground=self.color_texto,
+            rowheight=28,
+            font=("Segoe UI", 10),
+            borderwidth=0,
+        )
+        style.configure(
+            "Caja.Treeview.Heading",
+            background="#e7eef6",
+            foreground=self.color_texto,
+            font=("Segoe UI", 10, "bold"),
+            relief="flat",
+        )
+        style.map(
+            "Caja.Treeview",
+            background=[("selected", "#dbeafe")],
+            foreground=[("selected", self.color_texto)],
+        )
+
+    def _crear_tarjeta(self, parent, pady=(0, 14), padx=0):
+        tarjeta = tk.Frame(
+            parent,
+            bg=self.color_tarjeta,
+            bd=1,
+            relief="solid",
+            highlightthickness=0,
+        )
+        tarjeta._pack_config = {"fill": tk.BOTH, "expand": False, "padx": padx, "pady": pady}
+        return tarjeta
+
+    def _widget_existe(self, widget):
+        if widget is None:
+            return False
+        try:
+            return bool(widget.winfo_exists())
+        except tk.TclError:
+            return False
+
+    def liberar_recursos(self):
+        if getattr(self, "_layout_job", None):
+            try:
+                self.master.after_cancel(self._layout_job)
+            except tk.TclError:
+                pass
+            self._layout_job = None
+
+        self._cerrar_popup_ajuste()
 
         try:
-            valor = float(self.ajuste_valor_var.get() or 0)
+            self.master.unbind("<Configure>")
+        except tk.TclError:
+            pass
+
+        if getattr(self.master, "_pantalla_activa", None) is self:
+            self.master._pantalla_activa = None
+
+    def _programar_layout_responsive(self, event=None):
+        if event is not None and event.widget is not self.master:
+            return
+        if getattr(self.master, "_pantalla_activa", None) is not self:
+            return
+        if not self._widget_existe(self.izquierda_frame) or not self._widget_existe(self.derecha_frame):
+            return
+
+        if self._layout_job:
+            try:
+                self.master.after_cancel(self._layout_job)
+            except tk.TclError:
+                pass
+
+        self._layout_job = self.master.after(60, self._aplicar_layout_responsive)
+
+    def _aplicar_layout_responsive(self):
+        self._layout_job = None
+        if getattr(self.master, "_pantalla_activa", None) is not self:
+            return
+        if not self._widget_existe(self.izquierda_frame) or not self._widget_existe(self.derecha_frame):
+            return
+
+        ancho_actual = self.master.winfo_width() or self.master.winfo_screenwidth()
+        layout = "vertical" if ancho_actual < 1480 else "horizontal"
+
+        if layout == self._layout_actual:
+            return
+
+        self._layout_actual = layout
+        self.izquierda_frame.pack_forget()
+        self.derecha_frame.pack_forget()
+
+        if layout == "vertical":
+            self.izquierda_frame.pack(fill=tk.BOTH, expand=True)
+            self.derecha_frame.pack(fill=tk.BOTH, expand=True, pady=(16, 0))
+            return
+
+        self.izquierda_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.derecha_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True, padx=(20, 0))
+
+    def calcular_totales_con_ajuste(self, tipo=None, modo=None, valor=None):
+        subtotal = sum(p["cantidad"] * p["precio"] for p in self.carrito)
+
+        tipo = self.ajuste_tipo_var.get() if tipo is None else tipo
+        modo = self.ajuste_modo_var.get() if modo is None else modo
+        valor_fuente = self.ajuste_valor_var.get() if valor is None else valor
+
+        try:
+            valor = float(valor_fuente or 0)
         except ValueError:
             valor = 0.0
 
@@ -114,6 +249,26 @@ class PantallaCaja:
             "importe_aplicado": round(importe_aplicado, 2),
             "total_final": round(total_final, 2)
         }
+
+    def _texto_resumen_ajuste(self, datos):
+        subtotal_txt = f"Subtotal: ${datos['subtotal']:.2f}"
+        if datos["tipo"] in ["descuento", "interes"] and datos["importe_aplicado"] > 0:
+            signo = "-" if datos["tipo"] == "descuento" else "+"
+            etiqueta = "Descuento" if datos["tipo"] == "descuento" else "Interes"
+            if datos["modo"] == "porcentaje":
+                detalle = f"{etiqueta}: {signo}${datos['importe_aplicado']:.2f} ({datos['valor']:.2f}%)"
+            else:
+                detalle = f"{etiqueta}: {signo}${datos['importe_aplicado']:.2f}"
+            return f"{subtotal_txt} | {detalle}"
+        return f"{subtotal_txt} | Sin ajuste aplicado"
+
+    def _actualizar_boton_ajuste(self, datos):
+        if not self.boton_ajuste:
+            return
+        if datos["tipo"] in ["descuento", "interes"] and datos["importe_aplicado"] > 0:
+            self.boton_ajuste.config(text="Editar descuento / interes")
+            return
+        self.boton_ajuste.config(text="Agregar descuento / interes")
 
     def _definir_botones_admin(self):
         botones = []
@@ -197,83 +352,143 @@ class PantallaCaja:
             self.master.after(120, self.abrir_popup_productos)
 
     def crear_barra_superior_completa(self, frame):
-        barra_superior = tk.Frame(frame, bg="#dce6f0", pady=10, padx=20, bd=1, relief="ridge")
+        barra_superior = tk.Frame(frame, bg="#102a43", pady=14, padx=20, bd=0)
         barra_superior.pack(fill=tk.X, pady=(0, 15))
 
         # Empleado activo (izquierda)
-        tk.Label(barra_superior, text=f"Empleado activo: {self.empleado['nombre']} | Puesto: {self.empleado['puesto']}",
-                font=self.font_labels, bg="#dce6f0", fg="#333").pack(side=tk.LEFT)
+        bloque_titulo = tk.Frame(barra_superior, bg="#102a43")
+        bloque_titulo.pack(side=tk.LEFT, padx=(0, 18))
+        tk.Label(
+            bloque_titulo,
+            text="Caja activa",
+            font=("Segoe UI", 18, "bold"),
+            bg="#102a43",
+            fg="white",
+        ).pack(anchor="w")
+        tk.Label(
+            bloque_titulo,
+            text=f"Empleado: {self.empleado['nombre']} | Puesto: {self.empleado['puesto']}",
+            font=("Segoe UI", 10),
+            bg="#102a43",
+            fg="#d9e2ec",
+        ).pack(anchor="w")
 
         # Botones administración (centro)
-        botones_frame = tk.Frame(barra_superior, bg="#dce6f0")
+        botones_frame = tk.Frame(barra_superior, bg="#102a43")
         botones_frame.pack(side=tk.LEFT, expand=True)
 
         for texto, comando in self._definir_botones_admin():
             tk.Button(
                 botones_frame, text=texto, command=comando,
-                bg="#4a90e2", fg="white", font=self.font_labels,
-                relief="flat", padx=15, pady=7
+                bg="#1f6aa5", fg="white", font=("Segoe UI", 10, "bold"),
+                relief="flat", padx=14, pady=7, bd=0,
+                activebackground="#17537f", activeforeground="white",
+                cursor="hand2"
             ).pack(side=tk.LEFT, padx=5)
 
         # Cerrar sesión (derecha)
-        tk.Button(barra_superior, text="Cerrar sesión", command=self.cerrar_sesion_y_volver_al_login,
-                bg="#e94e4e", fg="white", font=self.font_labels,
-                relief="flat", padx=12, pady=7).pack(side=tk.RIGHT)
+        tk.Button(
+            barra_superior,
+            text="Cerrar sesión",
+            command=self.cerrar_sesion_y_volver_al_login,
+            bg=self.color_peligro,
+            fg="white",
+            font=("Segoe UI", 10, "bold"),
+            relief="flat",
+            padx=14,
+            pady=8,
+            bd=0,
+            activebackground=self.color_peligro_hover,
+            activeforeground="white",
+            cursor="hand2",
+        ).pack(side=tk.RIGHT)
 
 
     def crear_entrada_producto(self, frame):
-        sub_frame = tk.Frame(frame, bg="#f0f4f8")
-        sub_frame.pack(pady=(10, 15), fill=tk.X)
+        tarjeta = self._crear_tarjeta(frame, pady=(0, 14))
+        tarjeta.pack(**tarjeta._pack_config)
+        sub_frame = tk.Frame(tarjeta, bg=self.color_tarjeta, padx=18, pady=16)
+        sub_frame.pack(fill=tk.X)
         sub_frame.grid_columnconfigure(1, weight=1)
 
+        tk.Label(
+            sub_frame,
+            text="Agregar producto",
+            font=("Segoe UI", 16, "bold"),
+            bg=self.color_tarjeta,
+            fg=self.color_texto,
+        ).grid(row=0, column=0, columnspan=5, sticky="w", pady=(0, 4))
+        tk.Label(
+            sub_frame,
+            text="Buscá por ID o nombre y cargá la cantidad antes de agregar al carrito.",
+            font=self.font_subtitulo,
+            bg=self.color_tarjeta,
+            fg=self.color_secundario,
+        ).grid(row=1, column=0, columnspan=5, sticky="w", pady=(0, 12))
+
         # --- ID o nombre del producto ---
-        tk.Label(sub_frame, text="Buscar producto:", font=("Segoe UI", 13, "bold"), bg="#f0f4f8", fg="#333").grid(row=0, column=0, sticky="w", padx=(0, 8))
+        tk.Label(sub_frame, text="Buscar producto:", font=("Segoe UI", 13, "bold"), bg=self.color_tarjeta, fg=self.color_texto).grid(row=2, column=0, sticky="w", padx=(0, 8))
 
         self.entrada_id = tk.Entry(sub_frame, font=self.font_busqueda, relief="solid", bd=2, width=34, bg="white")
-        self.entrada_id.grid(row=0, column=1, padx=(0, 20), sticky="ew", ipady=6)
+        self.entrada_id.grid(row=2, column=1, padx=(0, 20), sticky="ew", ipady=6)
         self.entrada_id.bind("<KeyRelease>", self.autocompletar_producto)
 
         # Lista de sugerencias (se crea pero se oculta hasta que haya sugerencias)
         self.lista_sugerencias = tk.Listbox(sub_frame, font=self.font_sugerencias, height=7, width=44, bg="white", fg="black", relief="solid", bd=1)
-        self.lista_sugerencias.grid(row=1, column=1, sticky="ew", padx=(0, 20), pady=(4, 5))
+        self.lista_sugerencias.grid(row=3, column=1, sticky="ew", padx=(0, 20), pady=(4, 5))
         self.lista_sugerencias.bind("<<ListboxSelect>>", self.seleccionar_sugerencia)
         self.lista_sugerencias.bind("<Double-Button-1>", self.seleccionar_sugerencia)
         self.lista_sugerencias.grid_remove()  # Oculta inicialmente
 
         # --- Cantidad ---
-        tk.Label(sub_frame, text="Cantidad:", font=("Segoe UI", 13, "bold"), bg="#f0f4f8", fg="#333").grid(row=0, column=2, sticky="w", padx=(0, 8))
+        tk.Label(sub_frame, text="Cantidad:", font=("Segoe UI", 13, "bold"), bg=self.color_tarjeta, fg=self.color_texto).grid(row=2, column=2, sticky="w", padx=(0, 8))
 
         self.entrada_cantidad = tk.Entry(sub_frame, font=("Segoe UI", 15, "bold"), relief="solid", bd=2, width=8, bg="white")
-        self.entrada_cantidad.grid(row=0, column=3, padx=(0, 20), ipady=6)
+        self.entrada_cantidad.grid(row=2, column=3, padx=(0, 20), ipady=6)
         self.entrada_cantidad.insert(0, "1")  # Valor por defecto: 1
 
         # --- Botón para agregar al carrito ---
         btn_agregar = tk.Button(sub_frame, text="Agregar", command=self.agregar_producto,
-                                font=("Segoe UI", 13, "bold"), bg="#4CAF50", fg="white", relief="flat", padx=16, pady=8)
-        btn_agregar.grid(row=0, column=4)
+                                font=("Segoe UI", 13, "bold"), bg=self.color_exito, fg="white", relief="flat", padx=18, pady=10, bd=0, activebackground=self.color_exito_hover, activeforeground="white", cursor="hand2")
+        btn_agregar.grid(row=2, column=4)
 
 
 
 
     def crear_lista_productos(self, frame):
         # Frame que contiene carrito y stock bajo
-        lista_y_stock_frame = tk.Frame(frame, bg="#f0f4f8")
+        lista_y_stock_frame = tk.Frame(frame, bg=self.color_fondo)
         lista_y_stock_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
 
         # ----- COLUMNA IZQUIERDA: Carrito -----
-        carrito_frame = tk.Frame(lista_y_stock_frame, bg="#f0f4f8")
+        carrito_frame = self._crear_tarjeta(lista_y_stock_frame, pady=0)
         carrito_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
-        # Título como en stock bajo
-        tk.Label(carrito_frame, text="Productos en el carrito", bg="#f0f4f8",
-                fg="#333", font=("Segoe UI", 12, "bold")).pack(anchor="w", padx=5, pady=(0, 5))
+        encabezado_carrito = tk.Frame(carrito_frame, bg=self.color_tarjeta, padx=16, pady=14)
+        encabezado_carrito.pack(fill=tk.X)
+        tk.Label(
+            encabezado_carrito,
+            text="Carrito actual",
+            bg=self.color_tarjeta,
+            fg=self.color_texto,
+            font=("Segoe UI", 16, "bold"),
+        ).pack(anchor="w")
+        self.label_resumen_carrito = tk.Label(
+            encabezado_carrito,
+            text="Aún no agregaste productos.",
+            bg=self.color_tarjeta,
+            fg=self.color_secundario,
+            font=self.font_subtitulo,
+        )
+        self.label_resumen_carrito.pack(anchor="w", pady=(2, 0))
 
         # Listbox con borde visual limpio
-        lista_frame = tk.Frame(carrito_frame, bg="#f0f4f8", bd=1, relief="solid")
-        lista_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=(0, 5))
+        lista_frame = tk.Frame(carrito_frame, bg=self.color_tarjeta, bd=0)
+        lista_frame.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 14))
 
         self.lista_productos = tk.Listbox(lista_frame, font=self.font_lista, height=15,
-                                        bg="white", fg="#222", selectbackground="#4a90e2",
+                                        bg="white", fg=self.color_texto, selectbackground="#dbeafe",
+                                        selectforeground=self.color_texto,
                                         activestyle="none", relief="flat", bd=0)
         self.lista_productos.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
@@ -281,46 +496,119 @@ class PantallaCaja:
         self.lista_productos.delete(0, tk.END)
 
         # ----- COLUMNA DERECHA: Stock bajo -----
-        self.stock_bajo_frame = tk.Frame(lista_y_stock_frame, bg="#f0f4f8", width=300)
+        self.stock_bajo_frame = tk.Frame(lista_y_stock_frame, bg=self.color_fondo, width=300)
         self.stock_bajo_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(15, 0))
 
 
 
     def crear_botones_y_finalizar(self, frame):
         # --- Acciones ---
-        tk.Label(frame, text="Acciones", font=("Segoe UI", 16, "bold"), bg="#f0f4f8", fg="#333").pack(anchor="w", padx=10, pady=(10, 5))
+        tarjeta = self._crear_tarjeta(frame, pady=(0, 0))
+        tarjeta.pack(**tarjeta._pack_config)
+        tk.Label(
+            tarjeta,
+            text="Acciones de venta",
+            font=("Segoe UI", 16, "bold"),
+            bg=self.color_tarjeta,
+            fg=self.color_texto,
+        ).pack(anchor="w", padx=16, pady=(14, 4))
+        tk.Label(
+            tarjeta,
+            text="Ajustá el carrito o finalizá la operación desde acá.",
+            font=self.font_subtitulo,
+            bg=self.color_tarjeta,
+            fg=self.color_secundario,
+        ).pack(anchor="w", padx=16)
 
-        botones_frame = tk.Frame(frame, bg="#f0f4f8")
-        botones_frame.pack(pady=(10, 10))
+        botones_frame = tk.Frame(tarjeta, bg=self.color_tarjeta, padx=16, pady=14)
+        botones_frame.pack(fill=tk.X)
+        botones_frame.grid_columnconfigure(0, weight=1)
+        botones_frame.grid_columnconfigure(1, weight=1)
 
-        tk.Button(botones_frame, text="Modificar cantidad", command=self.cambiar_cantidad_seleccionada,
-                bg="#ffa500", fg="white", font=self.font_labels, relief="flat", padx=15, pady=7).pack(side=tk.LEFT, padx=5)
+        self.boton_ajuste = tk.Button(
+            botones_frame,
+            text="Agregar descuento / interes",
+            command=self.abrir_popup_ajuste,
+            bg=self.color_primario,
+            fg="white",
+            font=self.font_labels,
+            relief="flat",
+            padx=15,
+            pady=9,
+            bd=0,
+            activebackground=self.color_primario_hover,
+            activeforeground="white",
+            cursor="hand2",
+        )
+        self.boton_ajuste.grid(row=0, column=0, columnspan=2, sticky="ew", pady=(0, 10))
 
-        tk.Button(botones_frame, text="Eliminar producto", command=self.eliminar_producto_seleccionado,
-                bg="#e94e4e", fg="white", font=self.font_labels, relief="flat", padx=15, pady=7).pack(side=tk.LEFT, padx=5)
+        tk.Button(
+            botones_frame,
+            text="Modificar cantidad",
+            command=self.cambiar_cantidad_seleccionada,
+            bg=self.color_alerta,
+            fg="white",
+            font=self.font_labels,
+            relief="flat",
+            padx=15,
+            pady=9,
+            bd=0,
+            activebackground=self.color_alerta_hover,
+            activeforeground="white",
+            cursor="hand2",
+        ).grid(row=1, column=0, sticky="ew", padx=(0, 6))
 
-        tk.Button(botones_frame, text="🛒 FINALIZAR VENTA (F2)", command=self.confirmar_venta,
-                bg="#2e7d32", fg="white", font=self.font_labels, relief="flat", padx=15, pady=7).pack(side=tk.LEFT, padx=5)
+        tk.Button(
+            botones_frame,
+            text="Eliminar producto",
+            command=self.eliminar_producto_seleccionado,
+            bg=self.color_peligro,
+            fg="white",
+            font=self.font_labels,
+            relief="flat",
+            padx=15,
+            pady=9,
+            bd=0,
+            activebackground=self.color_peligro_hover,
+            activeforeground="white",
+            cursor="hand2",
+        ).grid(row=1, column=1, sticky="ew", padx=(6, 0))
+
+        tk.Button(
+            botones_frame,
+            text="Finalizar venta (F2)",
+            command=self.confirmar_venta,
+            bg=self.color_exito,
+            fg="white",
+            font=("Segoe UI", 12, "bold"),
+            relief="flat",
+            padx=20,
+            pady=10,
+            bd=0,
+            activebackground=self.color_exito_hover,
+            activeforeground="white",
+            cursor="hand2",
+        ).grid(row=2, column=0, columnspan=2, sticky="ew", pady=(10, 0))
 
 
 
     def crear_info_pago(self, frame):
         # --- Datos del cliente ---
-        tk.Label(frame, text="Datos del cliente", font=("Segoe UI", 16, "bold"), bg="#f0f4f8", fg="#333").pack(anchor="w", padx=10, pady=(0, 5))
+        tk.Label(frame, text="Cliente y forma de pago", font=("Segoe UI", 16, "bold"), bg=self.color_fondo, fg=self.color_texto).pack(anchor="w", padx=10, pady=(0, 5))
 
         # DATOS DEL CLIENTE
-        cliente_frame = tk.LabelFrame(frame, text="Datos del cliente", bg="#ffffff", fg="#333", font=self.font_labels, padx=10, pady=10)
+        cliente_frame = tk.LabelFrame(frame, text="Datos del cliente", bg=self.color_tarjeta, fg=self.color_texto, font=self.font_labels, padx=12, pady=12, bd=1, relief="solid")
         cliente_frame.pack(fill=tk.X, pady=(10, 10), padx=10)
 
-        self.label_dni = tk.Label(cliente_frame, text="DNI (opcional):", font=self.font_pequena, bg="#ffffff", fg="#555")
+        self.label_dni = tk.Label(cliente_frame, text="DNI (opcional):", font=self.font_pequena, bg=self.color_tarjeta, fg="#555")
         self.label_dni.grid(row=0, column=0, sticky="w", padx=(0, 10))
-        self.entry_dni = tk.Entry(cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=20)
+        self.entry_dni = tk.Entry(cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f8fafc", width=20)
         self.entry_dni.grid(row=1, column=0, padx=(0, 20), pady=(0, 10))
         self.entry_dni.bind("<KeyRelease>", self.autocompletar_cliente)
 
-        self.label_nombre = tk.Label(cliente_frame, text="Nombre (opcional):", font=self.font_pequena, bg="#ffffff", fg="#555")
+        self.label_nombre = tk.Label(cliente_frame, text="Nombre (opcional):", font=self.font_pequena, bg=self.color_tarjeta, fg="#555")
         self.label_nombre.grid(row=0, column=1, sticky="w")
-        self.entry_nombre = tk.Entry(cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=25)
+        self.entry_nombre = tk.Entry(cliente_frame, font=self.font_labels, relief="solid", bd=1, bg="#f8fafc", width=25)
         self.entry_nombre.grid(row=1, column=1, padx=(0, 10), pady=(0, 10))
         self.entry_nombre.bind("<KeyRelease>", self.autocompletar_cliente)
 
@@ -339,7 +627,7 @@ class PantallaCaja:
         self.lista_clientes_sugeridos.grid_remove()
 
         # FORMA DE PAGO
-        forma_frame = tk.LabelFrame(frame, text="Forma de pago", bg="#ffffff", fg="#333", font=self.font_labels, padx=10, pady=10)
+        forma_frame = tk.LabelFrame(frame, text="Forma de pago", bg=self.color_tarjeta, fg=self.color_texto, font=self.font_labels, padx=12, pady=12, bd=1, relief="solid")
         forma_frame.pack(fill=tk.X, pady=(0, 10), padx=10)
 
         # Botones
@@ -348,18 +636,19 @@ class PantallaCaja:
 
         self.botones_pago = {}
         for texto, valor in formas:
+            color_activo, _ = self._colores_forma_pago(valor)
             btn = tk.Button(forma_frame, text=texto, font=self.font_pequena,
-                            bg="#e0e0e0" if self.forma_pago_var.get() != valor else "#4a90e2",
-                            fg="black" if self.forma_pago_var.get() != valor else "white",
+                            bg="#e5e7eb" if self.forma_pago_var.get() != valor else color_activo,
+                            fg="#111827" if self.forma_pago_var.get() != valor else "white",
                             relief="solid", bd=1, padx=10, pady=5,
                             command=lambda v=valor: self.seleccionar_forma_pago(v))
             btn.pack(side=tk.LEFT, padx=5)
             self.botones_pago[valor] = btn
 
         # Campo "Con cuánto paga"
-        self.label_pago = tk.Label(forma_frame, text="Con cuánto paga:", font=self.font_pequena, bg="#ffffff", fg="#555")
+        self.label_pago = tk.Label(forma_frame, text="Con cuánto paga:", font=self.font_pequena, bg=self.color_tarjeta, fg="#555")
         self.label_pago.pack(side=tk.LEFT, padx=(20, 5))
-        self.entry_pago = tk.Entry(forma_frame, font=self.font_labels, relief="solid", bd=1, bg="#f0f4f8", width=10)
+        self.entry_pago = tk.Entry(forma_frame, font=self.font_labels, relief="solid", bd=1, bg="#f8fafc", width=10)
         self.entry_pago.pack(side=tk.LEFT)
         self.entry_pago.bind("<KeyRelease>", self.actualizar_vuelto)
 
@@ -497,40 +786,101 @@ class PantallaCaja:
             crear_si_no_existe=True,
         )
 
+    def _colores_forma_pago(self, forma):
+        colores = {
+            "efectivo": ("#2563eb", "#1d4ed8"),
+            "debito": ("#7c3aed", "#6d28d9"),
+            "deuda": ("#b45309", "#92400e"),
+        }
+        return colores.get(forma, (self.color_primario, self.color_primario_hover))
+
 
     def seleccionar_forma_pago(self, valor):
         self.forma_pago_var.set(valor)
         for v, btn in self.botones_pago.items():
             if v == valor:
-                btn.config(bg="#4a90e2", fg="white")
+                color, color_hover = self._colores_forma_pago(v)
+                btn.config(bg=color, fg="white", activebackground=color_hover, activeforeground="white")
             else:
-                btn.config(bg="#e0e0e0", fg="black")
+                btn.config(bg="#e5e7eb", fg="#111827", activebackground="#d1d5db", activeforeground="#111827")
         self.cambiar_forma_pago(valor)
+
+
+    def crear_total_y_vuelto_responsive(self, frame):
+        tk.Label(
+            frame,
+            text="Resumen de pago",
+            font=("Segoe UI", 16, "bold"),
+            bg=self.color_fondo,
+            fg=self.color_texto,
+        ).pack(anchor="w", padx=10, pady=(10, 5))
+
+        resumen_frame = tk.LabelFrame(
+            frame,
+            text="Totales",
+            bg=self.color_tarjeta,
+            fg=self.color_texto,
+            font=self.font_labels,
+            padx=12,
+            pady=12,
+            bd=1,
+            relief="solid",
+        )
+        resumen_frame.pack(fill=tk.X, padx=10)
+
+        self.total_label = tk.Label(
+            resumen_frame,
+            text="Total: $0.00",
+            font=("Segoe UI", 28, "bold"),
+            bg=self.color_tarjeta,
+            fg=self.color_exito,
+        )
+        self.total_label.pack(anchor="w", pady=(0, 10))
+
+        self.ajuste_info_label = tk.Label(
+            resumen_frame,
+            textvariable=self.ajuste_resumen_var,
+            bg=self.color_tarjeta,
+            fg="#555",
+            font=("Segoe UI", 10),
+            justify="left",
+            wraplength=420,
+        )
+        self.ajuste_info_label.pack(anchor="w", pady=(0, 10))
+
+        self.vuelto_label = tk.Label(
+            resumen_frame,
+            text="Vuelto: $0.00",
+            font=("Segoe UI", 20),
+            bg=self.color_tarjeta,
+            fg=self.color_peligro,
+        )
+        self.vuelto_label.pack(anchor="w")
 
 
     def crear_total_y_vuelto(self, frame):
         # --- Resumen de pago ---
-        tk.Label(frame, text="Resumen de pago", font=("Segoe UI", 16, "bold"), bg="#f0f4f8", fg="#333").pack(anchor="w", padx=10, pady=(10, 5))
+        tk.Label(frame, text="Resumen de pago", font=("Segoe UI", 16, "bold"), bg=self.color_fondo, fg=self.color_texto).pack(anchor="w", padx=10, pady=(10, 5))
 
-        resumen_frame = tk.LabelFrame(frame, text="Resumen de pago", bg="#ffffff", fg="#333", font=self.font_labels, padx=10, pady=10)
+        resumen_frame = tk.LabelFrame(frame, text="Totales", bg=self.color_tarjeta, fg=self.color_texto, font=self.font_labels, padx=12, pady=12, bd=1, relief="solid")
         resumen_frame.pack(fill=tk.X, padx=10)
 
         self.total_label = tk.Label(resumen_frame, text="Total: $0.00",
-                            font=("Segoe UI", 24, "bold"), bg="#ffffff", fg="#2e7d32")
+                            font=("Segoe UI", 28, "bold"), bg=self.color_tarjeta, fg=self.color_exito)
         self.total_label.pack(anchor="w", pady=(0, 10))
 
         ajuste_frame = tk.LabelFrame(
             resumen_frame,
             text="Descuento / Interés",
-            bg="#ffffff",
-            fg="#333",
+            bg=self.color_tarjeta,
+            fg=self.color_texto,
             font=self.font_labels,
             padx=10,
             pady=10
         )
         ajuste_frame.pack(fill=tk.X, pady=(0, 10))
 
-        tk.Label(ajuste_frame, text="Tipo:", bg="#ffffff", font=self.font_labels).grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        tk.Label(ajuste_frame, text="Tipo:", bg=self.color_tarjeta, font=self.font_labels).grid(row=0, column=0, sticky="w", padx=5, pady=5)
 
         combo_tipo = ttk.Combobox(
             ajuste_frame,
@@ -541,7 +891,7 @@ class PantallaCaja:
         )
         combo_tipo.grid(row=0, column=1, padx=5, pady=5)
 
-        tk.Label(ajuste_frame, text="Aplicar como:", bg="#ffffff", font=self.font_labels).grid(row=0, column=2, sticky="w", padx=5, pady=5)
+        tk.Label(ajuste_frame, text="Aplicar como:", bg=self.color_tarjeta, font=self.font_labels).grid(row=0, column=2, sticky="w", padx=5, pady=5)
 
         combo_modo = ttk.Combobox(
             ajuste_frame,
@@ -552,7 +902,7 @@ class PantallaCaja:
         )
         combo_modo.grid(row=0, column=3, padx=5, pady=5)
 
-        tk.Label(ajuste_frame, text="Valor:", bg="#ffffff", font=self.font_labels).grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        tk.Label(ajuste_frame, text="Valor:", bg=self.color_tarjeta, font=self.font_labels).grid(row=1, column=0, sticky="w", padx=5, pady=5)
 
         entry_ajuste = tk.Entry(
             ajuste_frame,
@@ -567,7 +917,7 @@ class PantallaCaja:
         self.ajuste_info_label = tk.Label(
             ajuste_frame,
             text="Sin ajuste aplicado",
-            bg="#ffffff",
+            bg=self.color_tarjeta,
             fg="#555",
             font=("Segoe UI", 10)
         )
@@ -578,17 +928,217 @@ class PantallaCaja:
         entry_ajuste.bind("<KeyRelease>", self.actualizar_total)
 
         self.vuelto_label = tk.Label(resumen_frame, text="Vuelto: $0.00",
-                                    font=("Segoe UI", 20), bg="#ffffff", fg="#c62828")
+                                    font=("Segoe UI", 20), bg=self.color_tarjeta, fg=self.color_peligro)
         self.vuelto_label.pack(anchor="w")
 
 
 
+    def abrir_popup_ajuste(self):
+        if self.ventana_ajuste is not None:
+            try:
+                if self.ventana_ajuste.winfo_exists():
+                    self.ventana_ajuste.lift()
+                    self.ventana_ajuste.focus_force()
+                    return
+            except tk.TclError:
+                self.ventana_ajuste = None
+
+        ventana = tk.Toplevel(self.master)
+        ventana.title("Descuento o interes")
+        ventana.geometry("430x300")
+        ventana.configure(bg=self.color_tarjeta)
+        ventana.resizable(False, False)
+        ventana.transient(self.master)
+        ventana.grab_set()
+        ventana.protocol("WM_DELETE_WINDOW", self._cerrar_popup_ajuste)
+        self.ventana_ajuste = ventana
+
+        frame = tk.Frame(ventana, bg=self.color_tarjeta, padx=18, pady=16)
+        frame.pack(fill=tk.BOTH, expand=True)
+        frame.grid_columnconfigure(1, weight=1)
+
+        tk.Label(
+            frame,
+            text="Descuento o interes",
+            bg=self.color_tarjeta,
+            fg=self.color_texto,
+            font=("Segoe UI", 15, "bold"),
+        ).grid(row=0, column=0, columnspan=2, sticky="w")
+
+        tk.Label(
+            frame,
+            text="Elegi el tipo de ajuste y confirma para aplicarlo al total actual.",
+            bg=self.color_tarjeta,
+            fg=self.color_secundario,
+            font=self.font_pequena,
+            wraplength=360,
+            justify="left",
+        ).grid(row=1, column=0, columnspan=2, sticky="w", pady=(4, 14))
+
+        tipo_var = tk.StringVar(value=self.ajuste_tipo_var.get())
+        modo_var = tk.StringVar(value=self.ajuste_modo_var.get())
+        valor_var = tk.StringVar(value=self.ajuste_valor_var.get())
+        preview_var = tk.StringVar()
+
+        tk.Label(frame, text="Tipo:", bg=self.color_tarjeta, font=self.font_labels).grid(
+            row=2, column=0, sticky="w", padx=(0, 10), pady=5
+        )
+        combo_tipo = ttk.Combobox(
+            frame,
+            textvariable=tipo_var,
+            values=["ninguno", "descuento", "interes"],
+            state="readonly",
+            width=18,
+        )
+        combo_tipo.grid(row=2, column=1, sticky="ew", pady=5)
+
+        tk.Label(frame, text="Aplicar como:", bg=self.color_tarjeta, font=self.font_labels).grid(
+            row=3, column=0, sticky="w", padx=(0, 10), pady=5
+        )
+        combo_modo = ttk.Combobox(
+            frame,
+            textvariable=modo_var,
+            values=["porcentaje", "monto"],
+            state="readonly",
+            width=18,
+        )
+        combo_modo.grid(row=3, column=1, sticky="ew", pady=5)
+
+        tk.Label(frame, text="Valor:", bg=self.color_tarjeta, font=self.font_labels).grid(
+            row=4, column=0, sticky="w", padx=(0, 10), pady=5
+        )
+        entry_valor = tk.Entry(
+            frame,
+            textvariable=valor_var,
+            font=self.font_labels,
+            relief="solid",
+            bd=1,
+        )
+        entry_valor.grid(row=4, column=1, sticky="ew", pady=5)
+
+        preview_label = tk.Label(
+            frame,
+            textvariable=preview_var,
+            bg=self.color_tarjeta,
+            fg="#555",
+            font=("Segoe UI", 10),
+            wraplength=360,
+            justify="left",
+        )
+        preview_label.grid(row=5, column=0, columnspan=2, sticky="w", pady=(10, 12))
+
+        def actualizar_preview(event=None):
+            datos = self.calcular_totales_con_ajuste(
+                tipo=tipo_var.get(),
+                modo=modo_var.get(),
+                valor=valor_var.get(),
+            )
+            preview_var.set(self._texto_resumen_ajuste(datos))
+            if tipo_var.get() == "ninguno":
+                combo_modo.state(["disabled"])
+                entry_valor.configure(state="disabled")
+            else:
+                combo_modo.state(["!disabled"])
+                entry_valor.configure(state="normal")
+
+        combo_tipo.bind("<<ComboboxSelected>>", actualizar_preview)
+        combo_modo.bind("<<ComboboxSelected>>", actualizar_preview)
+        entry_valor.bind("<KeyRelease>", actualizar_preview)
+        actualizar_preview()
+
+        botones = tk.Frame(frame, bg=self.color_tarjeta)
+        botones.grid(row=6, column=0, columnspan=2, sticky="e")
+
+        tk.Button(
+            botones,
+            text="Limpiar",
+            command=lambda: self._limpiar_popup_ajuste(tipo_var, modo_var, valor_var, actualizar_preview),
+            bg="#e5e7eb",
+            fg="#111827",
+            font=self.font_pequena,
+            relief="flat",
+            padx=14,
+            pady=7,
+            bd=0,
+            activebackground="#d1d5db",
+            activeforeground="#111827",
+            cursor="hand2",
+        ).pack(side=tk.LEFT, padx=(0, 8))
+
+        tk.Button(
+            botones,
+            text="Cancelar",
+            command=self._cerrar_popup_ajuste,
+            bg="#e5e7eb",
+            fg="#111827",
+            font=self.font_pequena,
+            relief="flat",
+            padx=14,
+            pady=7,
+            bd=0,
+            activebackground="#d1d5db",
+            activeforeground="#111827",
+            cursor="hand2",
+        ).pack(side=tk.LEFT, padx=(0, 8))
+
+        tk.Button(
+            botones,
+            text="Aplicar",
+            command=lambda: self._aplicar_ajuste_desde_popup(
+                tipo_var.get(),
+                modo_var.get(),
+                valor_var.get(),
+            ),
+            bg=self.color_exito,
+            fg="white",
+            font=("Segoe UI", 10, "bold"),
+            relief="flat",
+            padx=16,
+            pady=7,
+            bd=0,
+            activebackground=self.color_exito_hover,
+            activeforeground="white",
+            cursor="hand2",
+        ).pack(side=tk.LEFT)
+
+    def _limpiar_popup_ajuste(self, tipo_var, modo_var, valor_var, actualizar_preview):
+        tipo_var.set("ninguno")
+        modo_var.set("porcentaje")
+        valor_var.set("")
+        actualizar_preview()
+
+    def _aplicar_ajuste_desde_popup(self, tipo, modo, valor):
+        if tipo == "ninguno":
+            modo = "porcentaje"
+            valor = ""
+
+        self.ajuste_tipo_var.set(tipo)
+        self.ajuste_modo_var.set(modo)
+        self.ajuste_valor_var.set((valor or "").strip())
+        self.actualizar_total()
+        self._cerrar_popup_ajuste()
+
+    def _cerrar_popup_ajuste(self):
+        ventana = self.ventana_ajuste
+        self.ventana_ajuste = None
+        if not ventana:
+            return
+        try:
+            ventana.grab_release()
+        except tk.TclError:
+            pass
+        try:
+            if ventana.winfo_exists():
+                ventana.destroy()
+        except tk.TclError:
+            pass
+
     def mostrar_productos_stock_bajo(self, frame):
         stock_frame = tk.LabelFrame(self.stock_bajo_frame, text="Stock bajo",
-                            bg="#f0f4f8", font=self.font_labels)
+                            bg=self.color_tarjeta, fg=self.color_texto, font=self.font_labels, bd=1, relief="solid")
         stock_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.tree_stock_bajo = ttk.Treeview(stock_frame, columns=("ID", "Nombre", "Stock"), show="headings", height=10)
+        self.tree_stock_bajo = ttk.Treeview(stock_frame, columns=("ID", "Nombre", "Stock"), show="headings", height=10, style="Caja.Treeview")
         self.tree_stock_bajo.heading("ID", text="ID")
         self.tree_stock_bajo.heading("Nombre", text="Nombre")
         self.tree_stock_bajo.heading("Stock", text="Stock")
@@ -608,9 +1158,10 @@ class PantallaCaja:
         # Cambiar estilos de botones
         for v, btn in self.botones_pago.items():
             if v == forma:
-                btn.config(bg="#4a90e2", fg="white")
+                color, color_hover = self._colores_forma_pago(v)
+                btn.config(bg=color, fg="white", activebackground=color_hover, activeforeground="white")
             else:
-                btn.config(bg="#e0e0e0", fg="black")
+                btn.config(bg="#e5e7eb", fg="#111827", activebackground="#d1d5db", activeforeground="#111827")
 
         if forma == "efectivo":
             # Mostrar campo de pago y vuelto
@@ -619,8 +1170,8 @@ class PantallaCaja:
             self.entry_pago.configure(state="normal")
             self.label_dni.config(text="DNI del cliente (opcional):")
             self.label_nombre.config(text="Nombre del cliente (opcional):")
-            self.entry_dni.config(bg="#f0f4f8")
-            self.entry_nombre.config(bg="#f0f4f8")
+            self.entry_dni.config(bg="#f8fafc")
+            self.entry_nombre.config(bg="#f8fafc")
             self._ocultar_sugerencias_cliente()
             if not self.vuelto_label.winfo_ismapped():
                 self.vuelto_label.pack(anchor="w")
@@ -701,10 +1252,28 @@ class PantallaCaja:
 
     def actualizar_lista(self):
         self.lista_productos.delete(0, tk.END)
+        if not self.carrito:
+            if self.label_resumen_carrito:
+                self.label_resumen_carrito.config(text="Aún no agregaste productos.")
+            self.lista_productos.insert(tk.END, "No hay productos cargados en el carrito.")
+            return
+
+        total_unidades = sum(producto["cantidad"] for producto in self.carrito)
+        if self.label_resumen_carrito:
+            self.label_resumen_carrito.config(
+                text=f"{len(self.carrito)} productos distintos | {total_unidades} unidades cargadas"
+            )
         for p in self.carrito:
             subtotal = p["cantidad"] * p["precio"]
             texto = f"{p['cantidad']} x {p['nombre']} - ${p['precio']:.2f} c/u = ${subtotal:.2f}"
             self.lista_productos.insert(tk.END, texto)
+
+    def _actualizar_total_responsive(self, event=None):
+        datos = self.calcular_totales_con_ajuste()
+        self.total_label.config(text=f"Total: ${datos['total_final']:.2f}")
+        self.ajuste_resumen_var.set(self._texto_resumen_ajuste(datos))
+        self._actualizar_boton_ajuste(datos)
+        self.actualizar_vuelto()
 
     def actualizar_total(self, event=None):
         datos = self.calcular_totales_con_ajuste()
@@ -769,6 +1338,24 @@ class PantallaCaja:
             del self.carrito[seleccion[0]]
             self.actualizar_lista()
             self.actualizar_total()
+
+    def _limpiar_despues_de_venta_responsive(self):
+        self.carrito.clear()
+        self.lista_productos.delete(0, tk.END)
+        self.actualizar_stock_bajo()
+        self.forma_pago_var.set("efectivo")
+        self.seleccionar_forma_pago("efectivo")
+        self.total_label.config(text="Total: $0.00")
+        self.vuelto_label.config(text="Vuelto: $0.00")
+        self.entry_pago.delete(0, tk.END)
+        self.entry_dni.delete(0, tk.END)
+        self.entry_nombre.delete(0, tk.END)
+        self._ocultar_sugerencias_cliente()
+        self.ajuste_tipo_var.set("ninguno")
+        self.ajuste_modo_var.set("porcentaje")
+        self.ajuste_valor_var.set("")
+        self._cerrar_popup_ajuste()
+        self.actualizar_total()
 
     def limpiar_despues_de_venta(self):
         self.carrito.clear()
@@ -859,10 +1446,7 @@ class PantallaCaja:
 
     def cerrar_sesion_y_volver_al_login(self):
         cerrar_sesion()
-        self.master.destroy()
-        nuevo_root = tk.Tk()
-        self.ir_a_login(nuevo_root)
-        nuevo_root.mainloop()
+        self.ir_a_login(self.master)
 
     # --- POPUPS DE ADMINISTRACIÓN ---
     def abrir_popup_productos(self):

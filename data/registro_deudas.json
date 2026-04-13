@@ -169,5 +169,82 @@
                 "subtotal": 150.0
             }
         ]
+    },
+    {
+        "fecha": "2026-04-09 20:57:54",
+        "tipo": "carga",
+        "dni": "CLI-0001",
+        "nombre": "gaby",
+        "monto": 100.0,
+        "detalle": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad_total": 1,
+                "cantidad_pagada": 0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-04-09 20:58:04",
+        "tipo": "pago",
+        "dni": "CLI-0001",
+        "nombre": "gaby",
+        "monto": 100.0,
+        "detalle": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 1,
+                "precio_unitario": 100.0,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-04-11 16:58:50",
+        "tipo": "carga",
+        "dni": "44973930",
+        "nombre": "sofía garay",
+        "monto": 100.0,
+        "detalle": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad_total": 1,
+                "cantidad_pagada": 0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-04-11 16:59:00",
+        "tipo": "pago",
+        "dni": "44973930",
+        "nombre": "sofía garay",
+        "monto": 100.0,
+        "detalle": [
+            {
+                "id": 1,
+                "nombre": "coca",
+                "cantidad": 1,
+                "precio_unitario": 100.0,
+                "subtotal": 100.0
+            }
+        ]
+    },
+    {
+        "fecha": "2026-04-13 14:03:25",
+        "tipo": "carga",
+        "dni": "CLI-0002",
+        "nombre": "pepe",
+        "monto": 150.0,
+        "detalle": [
+            {
+                "id": 2,
+                "nombre": "pepsi",
+                "cantidad_total": 1,
+                "cantidad_pagada": 0
+            }
+        ]
     }
 ]

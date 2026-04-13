@@ -15,12 +15,28 @@ class PantallaDeudas:
     def __init__(self, master):
         self.master = tk.Toplevel(master)
         self.master.title("Gestión de Deudas")
-        self.master.geometry("900x600")
+        self.master.geometry("980x660")
         self.master.configure(bg=COLOR_FONDO)
 
         self.busqueda_var = tk.StringVar()
         self.orden_var = tk.StringVar(value="Monto descendente")
         self.cliente_seleccionado_frame = None
+
+        tk.Label(
+            self.master,
+            text="Deudas pendientes",
+            bg=COLOR_FONDO,
+            fg="#1f2937",
+            font=("Segoe UI", 18, "bold"),
+        ).pack(anchor="w", padx=20, pady=(18, 4))
+
+        tk.Label(
+            self.master,
+            text="Buscá clientes rápido y seleccioná una deuda para registrar pagos por producto.",
+            bg=COLOR_FONDO,
+            fg="#5b6470",
+            font=("Segoe UI", 10),
+        ).pack(anchor="w", padx=20)
 
         # Frame superior
         top_frame = tk.Frame(self.master, bg=COLOR_FONDO)
@@ -28,7 +44,7 @@ class PantallaDeudas:
 
         tk.Label(
             top_frame,
-            text="🔍 Buscar por nombre, DNI o referencia:",
+            text="Buscar por nombre, DNI o referencia:",
             bg=COLOR_FONDO,
             font=FUENTE_TITULO
         ).pack(side=tk.LEFT)
@@ -37,12 +53,12 @@ class PantallaDeudas:
             top_frame,
             textvariable=self.busqueda_var,
             font=FUENTE_TEXTO,
-            width=25,
+            width=32,
             bg=COLOR_ENTRADA,
             relief="solid",
             bd=1
         )
-        self.entry_buscar.pack(side=tk.LEFT, padx=10)
+        self.entry_buscar.pack(side=tk.LEFT, padx=10, ipady=4)
         self.entry_buscar.bind("<KeyRelease>", lambda e: self.actualizar_lista())
 
         opciones_orden = ["Monto descendente", "Monto ascendente"]
@@ -82,16 +98,16 @@ class PantallaDeudas:
 
         self.btn_pagar = tk.Button(
             btn_frame,
-            text="💵 Pagar Deuda",
+            text="Pagar deuda seleccionada",
             font=("Segoe UI", 10, "bold"),
-            bg=COLOR_BOTON,
+            bg="#16a34a",
             fg="white",
             height=2,
-            width=20,
+            width=24,
             command=self.pagar_deuda_dialog,
             relief="flat",
             cursor="hand2",
-            activebackground="#45a049"
+            activebackground="#15803d"
         )
         self.btn_pagar.pack()
 
@@ -139,11 +155,11 @@ class PantallaDeudas:
             label_header = tk.Label(
                 frame_cliente,
                 text=header,
-                font=FUENTE_TITULO,
+                font=("Segoe UI", 11, "bold"),
                 bg=COLOR_BLANCO,
                 anchor="w"
             )
-            label_header.pack(fill="x", padx=10, pady=5)
+            label_header.pack(fill="x", padx=12, pady=(8, 6))
             label_header.bind("<Button-1>", lambda e, f=frame_cliente: self.seleccionar_cliente(f))
 
             if productos:

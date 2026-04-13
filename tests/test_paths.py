@@ -21,7 +21,8 @@ class PathConfigTests(unittest.TestCase):
             productos.RUTA_PRODUCTOS,
             productos.RUTA_PRODUCTOS_BAJOS,
             ventas.RUTA_VENTAS,
-            licencia.ARCHIVO_ACTIVACION,
+            licencia.ARCHIVO_INSTALACION,
+            licencia.ARCHIVO_CACHE,
         ]
 
         for ruta in rutas:

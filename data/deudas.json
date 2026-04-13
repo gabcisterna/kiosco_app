@@ -1,1 +1,16 @@
-[]
+[
+    {
+        "dni": "CLI-0002",
+        "nombre": "pepe",
+        "productos": [
+            {
+                "id": 2,
+                "nombre": "pepsi",
+                "cantidad_total": 1,
+                "cantidad_pagada": 0
+            }
+        ],
+        "pagos": [],
+        "monto": 150.0
+    }
+]

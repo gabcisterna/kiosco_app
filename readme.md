@@ -1,213 +1,213 @@
-kiosco_app/
-│
-├── main.py                          # Archivo principal que arranca la app
-│
-├── ui/                              # Todo lo visual (interfaz)
-│   ├── __init__.py
-│   ├── pantalla_ventas.py          # Interfaz de ventas
-│   ├── pantalla_stock.py           # Interfaz de stock
-│   └── pantalla_login.py           # Interfaz de login/empleado
-│
-├── modules/                         # Lógica del programa
-│   ├── __init__.py
-│   ├── ventas.py                   # Lógica de ventas
-│   ├── stock.py                    # Control y alertas de stock
-│   ├── empleados.py                # Control de empleados y turnos
-│   └── licencia.py                 # Verificación de licencia mensual
-│
-├── data/                            # Archivos de datos (locales)
-│   ├── productos.json              # Lista de productos
-│   ├── ventas.json                 # Historial de ventas
-│   ├── empleados.json              # Lista de empleados
-│   └── config.json                 # Configuración general
-│
-├── assets/                          # Imágenes, íconos, sonidos, etc.
-│   └── logo.png
-│
-└── README.md                        # Instrucciones y guía del proyecto
+# Kiosco App
 
+Esta guia deja documentado:
 
-**Plan de Desarrollo - Aplicación para Kioscos (PC - Local)**
+- como ejecutar la app
+- como funciona el nuevo sistema de licencias por instalacion
+- como configurar Google Sheets como backend simple
+- como generar el `.exe`
 
----
+## 1. Requisitos
 
-**Objetivo General:** Crear una aplicación de escritorio para computadoras con Windows, orientada a negocios pequeños tipo kiosco. Esta aplicación funcionará sin necesidad de internet ni bases de datos externas. Todo estará guardado localmente, utilizando archivos simples como JSON. Además, el objetivo a largo plazo es poder alquilar esta aplicación a otros negocios cobrando una licencia mensual mediante un sistema de activación por código.
+- Windows 10 u 11
+- Python 3.12 recomendado
+- `pip`
 
-Este documento sirve para mantener toda la información organizada y clara, por si hay que continuar el proyecto en otro momento o con otra inteligencia artificial.
+## 2. Instalar dependencias
 
----
+Abri PowerShell dentro de la carpeta del proyecto y ejecuta:
 
-**Resumen de Características Clave:**
-
-* Funcionamiento 100% offline
-* Diseño claro (sin modo oscuro)
-* Sin base de datos externa
-* Todo guardado localmente en archivos como `.json` o `.csv`
-* Validación de licencia mensual por código ingresado manualmente
-* Interfaz simple, intuitiva, adaptada a usuarios no técnicos
-
----
-
-**Módulos Iniciales:**
-
-1. **Pantalla de Ventas**
-
-   * Ingreso de productos, cantidad y precio
-   * Cálculo automático del total y del vuelto
-   * Interfaz para buscar productos rápidamente
-
-2. **Control de Stock**
-
-   * Registro de productos con nombre, precio, stock inicial
-   * Descuento automático del stock al realizar una venta
-   * Avisos cuando un producto baja de cierto nivel (por ejemplo, menos de 5 unidades)
-   * Botón para reponer stock fácilmente
-
-3. **Validación de Licencia**
-
-   * El programa requiere un código que se ingresa manualmente una vez por mes
-   * El código puede ser igual para todos los negocios si se desea
-   * El código se valida localmente, sin necesidad de internet
-   * El código puede estar cifrado para evitar que sea visible fácilmente
-
-4. **Historial de Ventas**
-
-   * Registro automático de cada venta con datos: fecha, hora, productos, cantidades, total
-   * Guardado en archivo local (JSON o CSV)
-
----
-
-**Módulos Intermedios:**
-
-5. **Gestor de Empleados**
-
-   * Alta/baja de empleados
-   * Cada empleado tiene su propio usuario (sin contraseña si se quiere simple)
-   * Posibilidad de asignar roles: administrador o vendedor
-
-6. **Registro por Empleado**
-
-   * Cada venta queda registrada con el nombre del empleado
-   * Historial filtrable por empleado y por fecha
-
-7. **Cierre de Caja**
-
-   * Total vendido en el día
-   * Posibilidad de exportar resumen del día (pantalla o archivo)
-
----
-
-**Módulos Avanzados (para versiones futuras):**
-
-* Descuentos automáticos o manuales
-* Reportes exportables a PDF o Excel
-* Control de ingresos/egresos (por ejemplo, pagos a proveedores)
-* Atajos para ventas rápidas (productos más vendidos)
-* Soporte para impresoras de ticket (opcional)
-* Copias de seguridad automáticas en pendrive o carpeta externa
-
----
-
-**Tecnología Recomendada para el Desarrollo:**
-
-* Lenguaje: **Python**
-* Librería de interfaz gráfica: **Tkinter**
-* Almacenamiento: Archivos JSON
-* Generación de ejecutable: PyInstaller
-
-**Por qué Python + Tkinter:**
-
-* Rápido de desarrollar
-* Liviano y funciona en casi cualquier PC con Windows
-* Fácil de mantener, modificar y escalar
-* No necesita instalar bases de datos ni servidores
-
----
-
-## Plan de Trabajo y Organización en Equipo (2 personas)
-
-### Fase 1: Planificación y Diseño (ambos)
-
-1. **Definir funcionalidades mínimas**
-
-   * Confirmar los módulos iniciales que se van a implementar primero
-2. **Hacer bocetos de las pantallas**
-
-   * Pantalla de ventas, stock, inicio (código), historial, empleados
-   * Herramientas sugeridas: Figma, Paint, papel
-
-**División de tarea sugerida:**
-
-* Persona 1 dibuja las interfaces y estructura visual
-* Persona 2 revisa y anota cómo debería funcionar cada parte
-
----
-
-### Fase 2: Preparación del Proyecto
-
-3. **Crear estructura del proyecto**
-
-```
-/app
-  main.py
-  /ui        -> interfaces (Tkinter)
-  /data      -> archivos JSON
-  /modules   -> funciones lógicas
-  /assets    -> imágenes, íconos, etc.
+```powershell
+python -m pip install openpyxl pyinstaller
 ```
 
-4. **Crear archivos base JSON vacíos**
+`openpyxl` se usa para exportar reportes a Excel y `pyinstaller` para generar el `.exe`.
 
-* productos.json
-* ventas.json
-* empleados.json
+## 3. Ejecutar la app en desarrollo
 
-**División sugerida:**
+```powershell
+python main.py
+```
 
-* Persona 1 arma carpetas y base de código (main.py, etc.)
-* Persona 2 crea los archivos JSON con campos vacíos y los formatea
+## 4. Sistema de licencias
 
----
+La app ya no usa claves compartibles. Ahora funciona con un `id_instalacion` unico por cada instalacion.
 
-### Fase 3: Desarrollo por Módulos
+Flujo:
 
-**Comenzar con el módulo de ventas:**
+1. La app genera un UUID la primera vez.
+2. Ese ID se guarda localmente en una carpeta oculta del sistema.
+3. Si la instalacion no esta activa, la app muestra el ID.
+4. El cliente o revendedor te pasa ese ID.
+5. Vos lo agregas manualmente en Google Sheets con estado `activa` o `bloqueada`.
+6. La app consulta online esa planilla.
+7. Si esta `activa`, entra.
+8. Si no existe o esta `bloqueada`, no entra.
 
-**División de tareas sugerida:**
+## 5. Donde se guarda el ID y la cache
 
-* Persona 1: arma la ventana con los botones, campos, layout (Tkinter)
-* Persona 2: programa la lógica (calcular total, restar stock, guardar venta)
+En Windows, la informacion de licencia se guarda fuera de la carpeta del proyecto, en una ruta similar a:
 
-Una vez que ese módulo funciona bien:
+```text
+%LOCALAPPDATA%\KioscoApp\System\
+```
 
-* Agregar módulo de stock
-* Agregar módulo de historial
-* Agregar módulo de licencia (si es necesario al inicio)
-* Agregar módulo de empleados
+Archivos usados:
 
----
+- `install.bin`: guarda el `id_instalacion`
+- `license_cache.bin`: guarda el ultimo resultado de validacion
 
-### Fase 4: Prueba y Empaquetado
+Eso ayuda a que copiar solamente `KioscoApp.exe + data` no copie tambien la activacion.
 
-1. Probar todo en diferentes PCs
-2. Arreglar errores simples y probar sin conexión
-3. Usar `PyInstaller` para generar el ejecutable (.exe)
+## 6. Estructura del Google Sheet
 
----
+Crea una hoja dedicada a licencias con estas columnas:
 
-**Resumen del orden paso a paso:**
+```text
+id_instalacion | estado | fecha_opcional
+```
 
-1. Confirmar lista de funciones (ambos)
-2. Diseñar pantallas (ambos)
-3. Crear carpetas y archivos base (1)
-4. Crear archivos JSON (2)
-5. Empezar por el módulo de ventas:
+Ejemplo:
 
-   * Uno hace la interfaz
-   * Otro hace la lógica
-6. Agregar módulos uno por uno
-7. Probar, empaquetar, y distribuir
+```text
+6de7b2f8-1d10-4e6d-a4e8-f9d0a6d29e33 | activa    | 2026-04-10
+8d30f7c0-6b6a-42e0-9d8e-5a3ad3fca2d1 | bloqueada | 2026-04-10
+```
 
----
+Reglas simples:
 
+- `estado=activa` habilita la app
+- cualquier otro valor se toma como bloqueado
+- idealmente usa una sola fila por ID
+- si repetis un ID, la app toma la ultima coincidencia del CSV
 
+## 7. Como conectar Google Sheets
+
+La implementacion actual usa la opcion mas simple: un CSV publico de Google Sheets.
+
+Pasos:
+
+1. Crea la hoja con las columnas indicadas.
+2. En Google Sheets, publica esa hoja en formato CSV.
+3. La URL del CSV ya queda hardcodeada dentro de `modules/licencia.py`.
+4. Si algun dia quieres cambiar esa URL, hay que editar el codigo y recompilar.
+
+Parametros fijos actuales:
+
+- `google_sheet_csv_url`: URL publica del CSV de Google Sheets embebida en el codigo
+- `cache_horas`: 12
+- `offline_grace_days`: 3
+- `timeout_segundos`: 8
+
+## 8. Comportamiento online y offline
+
+Al iniciar:
+
+- si el ID existe y esta `activa` en la planilla, la app entra
+- si el ID no existe, la app se bloquea
+- si el ID esta `bloqueada`, la app se bloquea
+
+Modo offline:
+
+- si hubo una validacion online exitosa previa, la app permite seguir hasta `offline_grace_days`
+- si nunca hubo validacion online correcta, la app no entra
+
+Cache:
+
+- si la ultima validacion OK fue hace menos de `cache_horas`, se reutiliza cache
+- esto reduce dependencia de internet
+- si queres que un bloqueo pegue mas rapido, baja `cache_horas`
+
+## 9. Comandos utiles de licencia
+
+Mostrar el ID local:
+
+```powershell
+python -m modules.licencia --id
+```
+
+Forzar una validacion y ver el estado:
+
+```powershell
+python -m modules.licencia --estado
+```
+
+## 10. Tests automativos
+
+```powershell
+python -m compileall main.py modules ui tests
+python -m unittest discover -s tests -p "test_*.py" -v
+```
+
+## 11. Generar el `.exe`
+
+```powershell
+pyinstaller KioscoApp.spec
+```
+
+El ejecutable queda en:
+
+```text
+dist\KioscoApp.exe
+```
+
+## 12. Carpeta final para entregar
+
+Para usar el sistema fuera del proyecto, arma una carpeta final con esta estructura:
+
+```text
+KioscoApp/
+|-- KioscoApp.exe
+`-- data/
+```
+
+La carpeta `data` sigue siendo necesaria para:
+
+- productos
+- ventas
+- empleados
+- clientes
+- deudas
+- turnos
+- registros
+
+## 13. Regla importante
+
+Respeta siempre esto:
+
+- `KioscoApp.exe` y `data\` deben viajar juntos
+
+Y ademas:
+
+- la activacion no vive dentro de `data`
+- una instalacion nueva genera otro `id_instalacion`
+- la URL del backend ya no esta en un archivo editable externo
+
+## 14. Backup
+
+Para guardar datos del negocio, alcanza con copiar la carpeta `data\`.
+
+Para que una instalacion siga activada en la misma maquina, no borres `%LOCALAPPDATA%\KioscoApp\System\`.
+
+## 15. Resumen operativo
+
+Para vos, el flujo diario queda asi:
+
+1. El cliente abre la app y ve su `id_instalacion`.
+2. Te envia ese ID.
+3. Vos lo pegas en Google Sheets.
+4. Le pones `activa`.
+5. El cliente toca `Reintentar`.
+6. Si deja de pagar, cambias `estado` a `bloqueada`.
+
+Eso te da un esquema simple tipo SaaS basico sin base de datos propia.
+
+## 16. Seguridad realista
+
+Sacar `licencia_config.json` evita que un cliente comun cambie la URL o los tiempos desde un archivo visible.
+
+Igual conviene tener presente esto:
+
+- si entregas `main.py` y los modulos fuente, alguien tecnico igual puede modificar el codigo
+- si entregas `.exe` compilado con PyInstaller, se vuelve bastante menos trivial tocarlo
+- no existe proteccion perfecta en una app de escritorio offline, pero si puedes subir bastante la dificultad

@@ -27,7 +27,8 @@ def isolated_data_env():
             "registro_deudas": os.path.join(data_dir, "registro_deudas.json"),
             "turnos": os.path.join(data_dir, "turnos.json"),
             "ventas": os.path.join(data_dir, "ventas.json"),
-            "activacion": os.path.join(temp_dir, "activacion.txt"),
+            "instalacion": os.path.join(temp_dir, "install.bin"),
+            "cache_licencia": os.path.join(temp_dir, "license_cache.bin"),
         }
 
         with ExitStack() as stack:
@@ -41,7 +42,8 @@ def isolated_data_env():
             stack.enter_context(patch.object(productos, "RUTA_PRODUCTOS", rutas["productos"]))
             stack.enter_context(patch.object(productos, "RUTA_PRODUCTOS_BAJOS", rutas["productos_bajos"]))
             stack.enter_context(patch.object(ventas, "RUTA_VENTAS", rutas["ventas"]))
-            stack.enter_context(patch.object(licencia, "ARCHIVO_ACTIVACION", rutas["activacion"]))
+            stack.enter_context(patch.object(licencia, "ARCHIVO_INSTALACION", rutas["instalacion"]))
+            stack.enter_context(patch.object(licencia, "ARCHIVO_CACHE", rutas["cache_licencia"]))
             yield temp_dir, rutas
     finally:
         shutil.rmtree(temp_dir, ignore_errors=True)

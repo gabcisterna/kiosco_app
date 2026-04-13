@@ -3,5 +3,20 @@
         "dni": "1",
         "nombre": "1",
         "deuda": 0.0
+    },
+    {
+        "dni": "CLI-0001",
+        "nombre": "gaby",
+        "deuda": 0.0
+    },
+    {
+        "dni": "44973930",
+        "nombre": "sofía garay",
+        "deuda": 0.0
+    },
+    {
+        "dni": "CLI-0002",
+        "nombre": "pepe",
+        "deuda": 150.0
     }
 ]

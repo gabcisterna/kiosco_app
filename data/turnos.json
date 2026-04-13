@@ -148,5 +148,101 @@
         "usuario": "prueba",
         "inicio": "2026-04-09 20:30:18",
         "fin": "2026-04-09 20:32:27"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-09 20:41:48",
+        "fin": "2026-04-09 20:42:43"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-09 20:56:26",
+        "fin": "2026-04-09 20:58:06"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-09 21:04:26",
+        "fin": "2026-04-09 21:04:27"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-10 14:31:32",
+        "fin": null
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-10 14:32:19",
+        "fin": "2026-04-10 14:40:55"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-10 16:04:09",
+        "fin": "2026-04-10 16:04:14"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-11 13:22:14",
+        "fin": null
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-11 13:24:19",
+        "fin": "2026-04-11 13:24:22"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-11 14:22:26",
+        "fin": "2026-04-11 14:22:28"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-11 16:57:00",
+        "fin": "2026-04-11 16:59:14"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-13 14:02:41",
+        "fin": "2026-04-13 14:04:05"
+    },
+    {
+        "empleado": "agus",
+        "usuario": "agus",
+        "inicio": "2026-04-13 14:04:13",
+        "fin": "2026-04-13 14:04:41"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-13 14:04:49",
+        "fin": "2026-04-13 14:04:51"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-13 14:05:26",
+        "fin": "2026-04-13 14:05:29"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-13 14:07:33",
+        "fin": "2026-04-13 14:07:38"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-13 14:09:59",
+        "fin": "2026-04-13 14:10:02"
     }
 ]
