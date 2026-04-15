@@ -5,7 +5,7 @@
         "correo": "prueba",
         "puesto": "Dueño",
         "usuario": "prueba",
-        "activo": false
+        "activo": true
     },
     {
         "nombre": "agus",

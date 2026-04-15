@@ -16,7 +16,7 @@ class ReportesTests(unittest.TestCase):
                         "id": "1",
                         "nombre": "Ana",
                         "correo": "ana@example.com",
-                        "puesto": "Dueño",
+                        "puesto": "Dueno",
                         "activo": False,
                     },
                     {
@@ -45,6 +45,8 @@ class ReportesTests(unittest.TestCase):
                                 "cantidad": 2,
                                 "precio_unitario": 50.0,
                                 "subtotal": 100.0,
+                                "tipo_venta": "unidad",
+                                "unidad_medida": "u",
                             }
                         ],
                     },
@@ -63,6 +65,8 @@ class ReportesTests(unittest.TestCase):
                                 "cantidad": 1,
                                 "precio_unitario": 50.0,
                                 "subtotal": 50.0,
+                                "tipo_venta": "unidad",
+                                "unidad_medida": "u",
                             }
                         ],
                     },
@@ -81,6 +85,8 @@ class ReportesTests(unittest.TestCase):
                                 "cantidad": 1,
                                 "precio_unitario": 50.0,
                                 "subtotal": 50.0,
+                                "tipo_venta": "unidad",
+                                "unidad_medida": "u",
                             },
                             {
                                 "id": 3,
@@ -88,6 +94,8 @@ class ReportesTests(unittest.TestCase):
                                 "cantidad": 3,
                                 "precio_unitario": 50.0,
                                 "subtotal": 150.0,
+                                "tipo_venta": "unidad",
+                                "unidad_medida": "u",
                             },
                         ],
                     },
@@ -106,6 +114,8 @@ class ReportesTests(unittest.TestCase):
                                 "cantidad": 1,
                                 "precio_unitario": 999.0,
                                 "subtotal": 999.0,
+                                "tipo_venta": "unidad",
+                                "unidad_medida": "u",
                             }
                         ],
                     },
@@ -127,6 +137,78 @@ class ReportesTests(unittest.TestCase):
             self.assertEqual(mensual["productos_distintos"], 3)
             self.assertEqual(mensual["formas_pago"][0]["forma_pago"], "deuda")
 
+    def test_reporte_separa_unidades_y_kilos(self):
+        with isolated_data_env():
+            guardar_empleados(
+                [
+                    {
+                        "id": "1",
+                        "nombre": "Ana",
+                        "correo": "ana@example.com",
+                        "puesto": "Dueno",
+                        "activo": False,
+                    }
+                ]
+            )
+            guardar_ventas(
+                [
+                    {
+                        "fecha": "2026-04-08 10:00:00",
+                        "empleado_id": "1",
+                        "cliente_dni": None,
+                        "forma_pago": "efectivo",
+                        "subtotal": 3000.0,
+                        "ajuste": {"tipo": None, "modo": None, "valor": 0, "importe_aplicado": 0},
+                        "total": 3000.0,
+                        "productos": [
+                            {
+                                "id": 1,
+                                "nombre": "Queso",
+                                "cantidad": 1.25,
+                                "precio_unitario": 2400.0,
+                                "subtotal": 3000.0,
+                                "tipo_venta": "kilo",
+                                "unidad_medida": "kg",
+                            }
+                        ],
+                    },
+                    {
+                        "fecha": "2026-04-08 11:00:00",
+                        "empleado_id": "1",
+                        "cliente_dni": None,
+                        "forma_pago": "efectivo",
+                        "subtotal": 1600.0,
+                        "ajuste": {"tipo": None, "modo": None, "valor": 0, "importe_aplicado": 0},
+                        "total": 1600.0,
+                        "productos": [
+                            {
+                                "id": 2,
+                                "nombre": "Pan",
+                                "cantidad": 2,
+                                "precio_unitario": 800.0,
+                                "subtotal": 1600.0,
+                                "tipo_venta": "unidad",
+                                "unidad_medida": "u",
+                            }
+                        ],
+                    },
+                ]
+            )
+
+            reporte = generar_reporte_ventas("diario", "2026-04-08")
+
+            self.assertEqual(reporte["unidades_vendidas"], 2.0)
+            self.assertEqual(reporte["kilos_vendidos"], 1.25)
+
+            queso = next(producto for producto in reporte["productos_mas_vendidos"] if producto["nombre"] == "Queso")
+            self.assertEqual(queso["cantidad_vendida"], 1.25)
+            self.assertEqual(queso["unidad_medida"], "kg")
+
+            empleado = reporte["empleados_destacados"][0]
+            self.assertEqual(empleado["nombre"], "Ana")
+            self.assertEqual(empleado["unidades_vendidas"], 2.0)
+            self.assertEqual(empleado["kilos_vendidos"], 1.25)
+
     def test_exporta_reporte_a_csv_compatible_con_excel(self):
         with isolated_data_env() as (temp_dir, _):
             guardar_empleados(
@@ -135,7 +217,7 @@ class ReportesTests(unittest.TestCase):
                         "id": "1",
                         "nombre": "Ana",
                         "correo": "ana@example.com",
-                        "puesto": "Dueño",
+                        "puesto": "Dueno",
                         "activo": False,
                     }
                 ]
@@ -157,6 +239,8 @@ class ReportesTests(unittest.TestCase):
                                 "cantidad": 2,
                                 "precio_unitario": 50.0,
                                 "subtotal": 100.0,
+                                "tipo_venta": "unidad",
+                                "unidad_medida": "u",
                             }
                         ],
                     }

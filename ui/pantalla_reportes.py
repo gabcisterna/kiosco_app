@@ -2,6 +2,7 @@ import tkinter as tk
 from datetime import datetime
 from tkinter import filedialog, messagebox, scrolledtext, ttk
 
+from modules.productos import formatear_cantidad
 from modules.reportes import (
     excel_disponible,
     exportar_reporte_ventas,
@@ -27,6 +28,17 @@ class PantallaReportes:
         self._crear_tablas()
         self._crear_insights()
         self.actualizar_reporte()
+
+    def _formatear_cantidad_producto(self, cantidad, tipo_venta):
+        return formatear_cantidad(cantidad, tipo_venta=tipo_venta, con_unidad=True)
+
+    def _resumen_cantidades(self, unidades, kilos):
+        partes = []
+        if unidades:
+            partes.append(f"{formatear_cantidad(unidades, tipo_venta='unidad')} u")
+        if kilos:
+            partes.append(f"{formatear_cantidad(kilos, tipo_venta='kilo')} kg")
+        return " + ".join(partes) if partes else "0 u"
 
     def _crear_controles(self):
         top_frame = tk.Frame(self.master, bg="#eef2f7")
@@ -108,7 +120,7 @@ class PantallaReportes:
             ("Ventas", "ventas"),
             ("Facturado", "facturado"),
             ("Ticket promedio", "ticket"),
-            ("Unidades", "unidades"),
+            ("Cantidad vendida", "cantidad"),
             ("Productos distintos", "productos"),
         ]
 
@@ -140,7 +152,7 @@ class PantallaReportes:
 
         frame_productos = tk.LabelFrame(
             tablas_superiores,
-            text="Productos más vendidos",
+            text="Productos mas vendidos",
             bg="#ffffff",
             fg="#222",
             font=("Segoe UI", 11, "bold"),
@@ -160,7 +172,7 @@ class PantallaReportes:
         self.tree_productos.heading("facturado", text="Facturado")
         self.tree_productos.heading("apariciones", text="Tickets")
         self.tree_productos.column("producto", width=260)
-        self.tree_productos.column("cantidad", width=90, anchor="center")
+        self.tree_productos.column("cantidad", width=100, anchor="center")
         self.tree_productos.column("facturado", width=110, anchor="center")
         self.tree_productos.column("apariciones", width=80, anchor="center")
         self.tree_productos.pack(fill=tk.BOTH, expand=True)
@@ -195,7 +207,7 @@ class PantallaReportes:
 
         frame_empleados = tk.LabelFrame(
             frame_inferior,
-            text="Desempeño por empleado",
+            text="Desempeno por empleado",
             bg="#ffffff",
             fg="#222",
             font=("Segoe UI", 11, "bold"),
@@ -206,17 +218,17 @@ class PantallaReportes:
 
         self.tree_empleados = ttk.Treeview(
             frame_empleados,
-            columns=("empleado", "ventas", "unidades", "total"),
+            columns=("empleado", "ventas", "cantidad", "total"),
             show="headings",
             height=10,
         )
         self.tree_empleados.heading("empleado", text="Empleado")
         self.tree_empleados.heading("ventas", text="Ventas")
-        self.tree_empleados.heading("unidades", text="Unidades")
+        self.tree_empleados.heading("cantidad", text="Cantidad")
         self.tree_empleados.heading("total", text="Facturado")
         self.tree_empleados.column("empleado", width=220)
         self.tree_empleados.column("ventas", width=90, anchor="center")
-        self.tree_empleados.column("unidades", width=90, anchor="center")
+        self.tree_empleados.column("cantidad", width=130, anchor="center")
         self.tree_empleados.column("total", width=120, anchor="center")
         self.tree_empleados.pack(fill=tk.BOTH, expand=True)
 
@@ -254,7 +266,7 @@ class PantallaReportes:
         try:
             reporte = generar_reporte_ventas(self.tipo_var.get(), self.fecha_var.get())
         except ValueError as exc:
-            messagebox.showerror("Fecha inválida", str(exc), parent=self.master)
+            messagebox.showerror("Fecha invalida", str(exc), parent=self.master)
             return
 
         self.reporte_actual = reporte
@@ -263,7 +275,9 @@ class PantallaReportes:
         self.resumen_labels["ventas"].config(text=str(reporte["cantidad_ventas"]))
         self.resumen_labels["facturado"].config(text=f"${reporte['total_facturado']:.2f}")
         self.resumen_labels["ticket"].config(text=f"${reporte['ticket_promedio']:.2f}")
-        self.resumen_labels["unidades"].config(text=str(reporte["unidades_vendidas"]))
+        self.resumen_labels["cantidad"].config(
+            text=self._resumen_cantidades(reporte["unidades_vendidas"], reporte["kilos_vendidos"])
+        )
         self.resumen_labels["productos"].config(text=str(reporte["productos_distintos"]))
 
         self._cargar_tree(
@@ -271,7 +285,7 @@ class PantallaReportes:
             [
                 (
                     producto["nombre"],
-                    producto["cantidad_vendida"],
+                    self._formatear_cantidad_producto(producto["cantidad_vendida"], producto.get("tipo_venta")),
                     f"${producto['facturado']:.2f}",
                     producto["apariciones"],
                 )
@@ -297,7 +311,7 @@ class PantallaReportes:
                 (
                     empleado["nombre"],
                     empleado["cantidad_ventas"],
-                    empleado["unidades_vendidas"],
+                    self._resumen_cantidades(empleado["unidades_vendidas"], empleado["kilos_vendidos"]),
                     f"${empleado['monto_total']:.2f}",
                 )
                 for empleado in reporte["empleados_destacados"][:10]
@@ -311,7 +325,7 @@ class PantallaReportes:
 
         if not reporte["cantidad_ventas"]:
             lineas.append("")
-            lineas.append("No hubo ventas registradas en este período.")
+            lineas.append("No hubo ventas registradas en este periodo.")
         else:
             mejor_producto = reporte.get("mejor_producto")
             mejor_empleado = reporte.get("mejor_empleado")
@@ -320,15 +334,18 @@ class PantallaReportes:
             lineas.extend(
                 [
                     "",
-                    f"Producto líder: {mejor_producto['nombre']} con {mejor_producto['cantidad_vendida']} unidades."
+                    (
+                        f"Producto lider: {mejor_producto['nombre']} con "
+                        f"{self._formatear_cantidad_producto(mejor_producto['cantidad_vendida'], mejor_producto.get('tipo_venta'))} vendidos."
+                    )
                     if mejor_producto
-                    else "Producto líder: sin datos.",
+                    else "Producto lider: sin datos.",
                     f"Empleado destacado: {mejor_empleado['nombre']} con ${mejor_empleado['monto_total']:.2f} facturados."
                     if mejor_empleado
                     else "Empleado destacado: sin datos.",
-                    f"Mejor día: {mejor_dia['fecha']} con ${mejor_dia['total']:.2f}."
+                    f"Mejor dia: {mejor_dia['fecha']} con ${mejor_dia['total']:.2f}."
                     if mejor_dia
-                    else "Mejor día: sin datos.",
+                    else "Mejor dia: sin datos.",
                 ]
             )
 
@@ -361,7 +378,7 @@ class PantallaReportes:
         try:
             exportar_reporte_ventas(self.reporte_actual, ruta)
         except RuntimeError as exc:
-            messagebox.showerror("Exportación no disponible", str(exc), parent=self.master)
+            messagebox.showerror("Exportacion no disponible", str(exc), parent=self.master)
             return
         except OSError as exc:
             messagebox.showerror("Error al exportar", f"No se pudo guardar el archivo.\n{exc}", parent=self.master)

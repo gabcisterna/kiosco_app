@@ -7,7 +7,9 @@
                 "id": 2,
                 "nombre": "pepsi",
                 "cantidad_total": 1,
-                "cantidad_pagada": 0
+                "cantidad_pagada": 0,
+                "tipo_venta": "unidad",
+                "unidad_medida": "u"
             }
         ],
         "pagos": [],

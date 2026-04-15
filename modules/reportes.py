@@ -3,6 +3,7 @@ import os
 from datetime import datetime, timedelta
 
 from modules.empleados import buscar_empleado
+from modules.productos import normalizar_tipo_venta, obtener_unidad_medida, producto_se_vende_por_kilo
 from modules.ventas import cargar_ventas
 
 FORMATO_FECHA_VENTA = "%Y-%m-%d %H:%M:%S"
@@ -40,7 +41,7 @@ def normalizar_tipo_reporte(tipo_reporte):
         if texto == etiqueta.lower():
             return clave
 
-    raise ValueError("Tipo de reporte inválido. Usá Diario, Semanal o Mensual.")
+    raise ValueError("Tipo de reporte invalido. Usa Diario, Semanal o Mensual.")
 
 
 def _parsear_fecha_base(fecha_base):
@@ -87,7 +88,7 @@ def _rango_periodo(tipo_reporte, fecha_base):
         etiqueta = inicio.strftime("%m/%Y")
         return inicio, fin, etiqueta
 
-    raise ValueError("Tipo de reporte inválido. Usá Diario, Semanal o Mensual.")
+    raise ValueError("Tipo de reporte invalido. Usa Diario, Semanal o Mensual.")
 
 
 def _parsear_fecha_venta(venta):
@@ -101,6 +102,13 @@ def _nombre_empleado(empleado_id):
     return f"ID {empleado_id}"
 
 
+def _tipo_venta_producto(producto):
+    tipo = normalizar_tipo_venta(producto.get("tipo_venta"))
+    if tipo == "unidad" and str(producto.get("unidad_medida", "")).strip().lower() == "kg":
+        return "kilo"
+    return tipo
+
+
 def _filas_resumen_exportacion(reporte):
     return [
         ["Campo", "Valor"],
@@ -112,7 +120,8 @@ def _filas_resumen_exportacion(reporte):
         ["Cantidad de ventas", reporte["cantidad_ventas"]],
         ["Total facturado", reporte["total_facturado"]],
         ["Ticket promedio", reporte["ticket_promedio"]],
-        ["Unidades vendidas", reporte["unidades_vendidas"]],
+        ["Cantidad por unidad", reporte["unidades_vendidas"]],
+        ["Cantidad por kilo", reporte["kilos_vendidos"]],
         ["Productos distintos", reporte["productos_distintos"]],
     ]
 
@@ -126,12 +135,13 @@ def _exportar_reporte_csv(reporte, ruta_destino):
         writer.writerow([])
 
         writer.writerow(["Productos mas vendidos"])
-        writer.writerow(["Producto", "Cantidad vendida", "Facturado", "Tickets"])
+        writer.writerow(["Producto", "Cantidad vendida", "Unidad", "Facturado", "Tickets"])
         for producto in reporte["productos_mas_vendidos"]:
             writer.writerow(
                 [
                     producto["nombre"],
                     producto["cantidad_vendida"],
+                    producto["unidad_medida"],
                     producto["facturado"],
                     producto["apariciones"],
                 ]
@@ -150,14 +160,15 @@ def _exportar_reporte_csv(reporte, ruta_destino):
             )
         writer.writerow([])
 
-        writer.writerow(["Desempeño por empleado"])
-        writer.writerow(["Empleado", "Ventas", "Unidades", "Facturado"])
+        writer.writerow(["Desempeno por empleado"])
+        writer.writerow(["Empleado", "Ventas", "Unidades", "Kilos", "Facturado"])
         for empleado in reporte["empleados_destacados"]:
             writer.writerow(
                 [
                     empleado["nombre"],
                     empleado["cantidad_ventas"],
                     empleado["unidades_vendidas"],
+                    empleado["kilos_vendidos"],
                     empleado["monto_total"],
                 ]
             )
@@ -173,7 +184,7 @@ def _exportar_reporte_xlsx(reporte, ruta_destino):
     try:
         from openpyxl import Workbook
     except ImportError as exc:
-        raise RuntimeError("No está disponible la exportación directa a Excel (.xlsx).") from exc
+        raise RuntimeError("No esta disponible la exportacion directa a Excel (.xlsx).") from exc
 
     wb = Workbook()
 
@@ -183,12 +194,13 @@ def _exportar_reporte_xlsx(reporte, ruta_destino):
         ws_resumen.append(fila)
 
     ws_productos = wb.create_sheet("Productos")
-    ws_productos.append(["Producto", "Cantidad vendida", "Facturado", "Tickets"])
+    ws_productos.append(["Producto", "Cantidad vendida", "Unidad", "Facturado", "Tickets"])
     for producto in reporte["productos_mas_vendidos"]:
         ws_productos.append(
             [
                 producto["nombre"],
                 producto["cantidad_vendida"],
+                producto["unidad_medida"],
                 producto["facturado"],
                 producto["apariciones"],
             ]
@@ -200,13 +212,14 @@ def _exportar_reporte_xlsx(reporte, ruta_destino):
         ws_pagos.append([pago["forma_pago"], pago["cantidad_operaciones"], pago["monto_total"]])
 
     ws_empleados = wb.create_sheet("Empleados")
-    ws_empleados.append(["Empleado", "Ventas", "Unidades", "Facturado"])
+    ws_empleados.append(["Empleado", "Ventas", "Unidades", "Kilos", "Facturado"])
     for empleado in reporte["empleados_destacados"]:
         ws_empleados.append(
             [
                 empleado["nombre"],
                 empleado["cantidad_ventas"],
                 empleado["unidades_vendidas"],
+                empleado["kilos_vendidos"],
                 empleado["monto_total"],
             ]
         )
@@ -244,7 +257,8 @@ def generar_reporte_ventas(tipo_reporte="diario", fecha_base=None):
             ventas_filtradas.append((fecha_venta, venta))
 
     total_facturado = 0.0
-    unidades_vendidas = 0
+    unidades_vendidas = 0.0
+    kilos_vendidos = 0.0
     productos = {}
     formas_pago = {}
     empleados = {}
@@ -277,7 +291,8 @@ def generar_reporte_ventas(tipo_reporte="diario", fecha_base=None):
                 "empleado_id": empleado_id,
                 "nombre": _nombre_empleado(empleado_id),
                 "cantidad_ventas": 0,
-                "unidades_vendidas": 0,
+                "unidades_vendidas": 0.0,
+                "kilos_vendidos": 0.0,
                 "monto_total": 0.0,
             },
         )
@@ -286,19 +301,28 @@ def generar_reporte_ventas(tipo_reporte="diario", fecha_base=None):
 
         for producto in venta.get("productos", []):
             producto_id = str(producto.get("id", ""))
-            cantidad = int(producto.get("cantidad", 0) or 0)
+            cantidad = float(producto.get("cantidad", 0) or 0)
             subtotal = float(producto.get("subtotal", 0) or 0)
-            unidades_vendidas += cantidad
-            resumen_empleado["unidades_vendidas"] += cantidad
+            tipo_venta_producto = _tipo_venta_producto(producto)
+            unidad_medida = producto.get("unidad_medida") or obtener_unidad_medida(tipo_venta=tipo_venta_producto)
+
+            if producto_se_vende_por_kilo(tipo_venta=tipo_venta_producto):
+                kilos_vendidos += cantidad
+                resumen_empleado["kilos_vendidos"] += cantidad
+            else:
+                unidades_vendidas += cantidad
+                resumen_empleado["unidades_vendidas"] += cantidad
 
             resumen_producto = productos.setdefault(
                 producto_id,
                 {
                     "id": producto_id,
                     "nombre": producto.get("nombre", f"Producto {producto_id}"),
-                    "cantidad_vendida": 0,
+                    "cantidad_vendida": 0.0,
                     "facturado": 0.0,
                     "apariciones": 0,
+                    "tipo_venta": tipo_venta_producto,
+                    "unidad_medida": unidad_medida,
                 },
             )
             resumen_producto["cantidad_vendida"] += cantidad
@@ -345,7 +369,8 @@ def generar_reporte_ventas(tipo_reporte="diario", fecha_base=None):
         "cantidad_ventas": cantidad_ventas,
         "total_facturado": total_facturado,
         "ticket_promedio": ticket_promedio,
-        "unidades_vendidas": unidades_vendidas,
+        "unidades_vendidas": round(unidades_vendidas, 2),
+        "kilos_vendidos": round(kilos_vendidos, 2),
         "productos_distintos": len(productos_ordenados),
         "productos_mas_vendidos": productos_ordenados,
         "empleados_destacados": empleados_ordenados,

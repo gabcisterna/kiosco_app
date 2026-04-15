@@ -7,7 +7,13 @@ from modules.console import log
 from modules.debito import registrar_pago_debito
 from modules.deudas import registrar_deuda
 from modules.empleados import cargar_empleados
-from modules.productos import buscar_producto, restar_stock
+from modules.productos import (
+    buscar_producto,
+    normalizar_cantidad_guardada,
+    obtener_unidad_medida,
+    parsear_cantidad_para_producto,
+    restar_stock,
+)
 from modules.rutas import asegurar_directorio, ruta_datos
 
 RUTA_VENTAS = ruta_datos("ventas.json")
@@ -42,7 +48,7 @@ def obtener_empleado_activo():
 def registrar_venta(productos_vendidos, forma_pago, cliente_dni=None, cliente_nombre=None, ajuste=None):
     empleado = obtener_empleado_activo()
     if not empleado:
-        log("Error: no hay ningún empleado activo.")
+        log("Error: no hay ningun empleado activo.")
         return False
 
     empleado_id = empleado["id"]
@@ -67,21 +73,29 @@ def registrar_venta(productos_vendidos, forma_pago, cliente_dni=None, cliente_no
             log(f"Error: producto con ID {item['id']} no encontrado.")
             return False
 
-        if producto["stock_actual"] < item["cantidad"]:
+        try:
+            cantidad = parsear_cantidad_para_producto(item.get("cantidad"), producto=producto)
+        except ValueError as error:
+            log(f"Error: cantidad invalida para {producto['nombre']}: {error}")
+            return False
+
+        if float(producto.get("stock_actual", 0) or 0) < float(cantidad):
             log(f"Error: no hay suficiente stock para el producto {producto['nombre']}.")
             return False
 
         precio_unitario = float(producto["precio"])
-        subtotal = precio_unitario * item["cantidad"]
+        subtotal = precio_unitario * cantidad
         subtotal_venta += subtotal
 
         detalle_productos.append(
             {
                 "id": producto["id"],
                 "nombre": producto["nombre"],
-                "cantidad": item["cantidad"],
+                "cantidad": normalizar_cantidad_guardada(cantidad, producto=producto),
                 "precio_unitario": round(precio_unitario, 2),
                 "subtotal": round(subtotal, 2),
+                "tipo_venta": producto.get("tipo_venta", "unidad"),
+                "unidad_medida": obtener_unidad_medida(producto=producto),
             }
         )
 
@@ -124,17 +138,17 @@ def registrar_venta(productos_vendidos, forma_pago, cliente_dni=None, cliente_no
 
     if forma_pago == "debito":
         if not cliente:
-            log("Error: no se puede registrar un pago por débito sin un cliente.")
+            log("Error: no se puede registrar un pago por debito sin un cliente.")
             return False
     elif forma_pago == "deuda":
         if not cliente:
             log("Error: no se puede fiar una venta sin un cliente.")
             return False
     elif forma_pago != "efectivo":
-        log("Aviso: forma de pago inválida. Use 'efectivo', 'debito' o 'deuda'.")
+        log("Aviso: forma de pago invalida. Use 'efectivo', 'debito' o 'deuda'.")
         return False
 
-    for item in productos_vendidos:
+    for item in detalle_productos:
         if not restar_stock(item["id"], item["cantidad"]):
             return False
 

@@ -244,5 +244,71 @@
         "usuario": "prueba",
         "inicio": "2026-04-13 14:09:59",
         "fin": "2026-04-13 14:10:02"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-13 20:23:29",
+        "fin": "2026-04-13 20:25:09"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-13 20:25:17",
+        "fin": "2026-04-13 20:25:55"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-14 15:37:55",
+        "fin": null
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-14 15:40:17",
+        "fin": null
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-14 15:41:18",
+        "fin": null
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-14 15:45:07",
+        "fin": null
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-14 15:55:30",
+        "fin": "2026-04-14 15:56:16"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-14 17:12:58",
+        "fin": "2026-04-14 17:13:36"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-14 21:17:28",
+        "fin": "2026-04-14 21:18:56"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-15 07:29:46",
+        "fin": "2026-04-15 07:32:04"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-15 07:40:24",
+        "fin": null
     }
 ]

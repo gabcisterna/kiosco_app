@@ -385,5 +385,30 @@
                 "subtotal": 150.0
             }
         ]
+    },
+    {
+        "fecha": "2026-04-13 20:25:38",
+        "empleado_id": "1",
+        "cliente_dni": null,
+        "forma_pago": "efectivo",
+        "subtotal": 250.0,
+        "ajuste": {
+            "tipo": "ninguno",
+            "modo": "porcentaje",
+            "valor": 0.0,
+            "importe_aplicado": 0.0
+        },
+        "total": 250.0,
+        "productos": [
+            {
+                "id": 6,
+                "nombre": "Criollitos",
+                "cantidad": 0.25,
+                "precio_unitario": 1000.0,
+                "subtotal": 250.0,
+                "tipo_venta": "kilo",
+                "unidad_medida": "kg"
+            }
+        ]
     }
 ]

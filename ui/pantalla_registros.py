@@ -3,6 +3,7 @@ from datetime import datetime
 from tkinter import scrolledtext, ttk
 
 from modules.deudas import cargar_registro_deudas
+from modules.productos import formatear_cantidad, producto_se_vende_por_kilo
 
 
 class PantallaRegistros:
@@ -96,6 +97,19 @@ class PantallaRegistros:
         except Exception:
             return fecha_str
 
+    def _texto_cantidad(self, item, campo="cantidad"):
+        tipo_venta = item.get("tipo_venta")
+        if not tipo_venta and str(item.get("unidad_medida", "")).strip().lower() == "kg":
+            tipo_venta = "kilo"
+        return formatear_cantidad(item.get(campo, 0), tipo_venta=tipo_venta, con_unidad=True)
+
+    def _texto_detalle_item(self, item, campo="cantidad"):
+        cantidad = self._texto_cantidad(item, campo=campo)
+        nombre = item.get("nombre", "")
+        if producto_se_vende_por_kilo(tipo_venta=item.get("tipo_venta")) or str(item.get("unidad_medida", "")).strip().lower() == "kg":
+            return f"{cantidad} de {nombre}"
+        return f"{cantidad} x {nombre}"
+
     def _detalle_resumido(self, registro):
         detalle_lista = registro.get("detalle", [])
         if not detalle_lista:
@@ -103,13 +117,12 @@ class PantallaRegistros:
 
         partes = []
         for detalle in detalle_lista:
-            cantidad = detalle.get("cantidad", detalle.get("cantidad_total", 0))
-            nombre = detalle.get("nombre", "")
+            campo_cantidad = "cantidad" if "cantidad" in detalle else "cantidad_total"
             subtotal = detalle.get("subtotal")
             if subtotal is not None:
-                partes.append(f"{cantidad}x {nombre} (${subtotal:.2f})")
+                partes.append(f"{self._texto_detalle_item(detalle, campo=campo_cantidad)} (${subtotal:.2f})")
             else:
-                partes.append(f"{cantidad}x {nombre}")
+                partes.append(self._texto_detalle_item(detalle, campo=campo_cantidad))
         return ", ".join(partes)
 
     def actualizar_lista(self):
@@ -165,15 +178,16 @@ class PantallaRegistros:
         detalle = registro.get("detalle", [])
         if detalle:
             for item in detalle:
-                cantidad = item.get("cantidad", item.get("cantidad_total", 0))
-                lineas.append(f"- {cantidad} x {item.get('nombre', '')} | ID {item.get('id', '-')}")
+                campo_cantidad = "cantidad" if "cantidad" in item else "cantidad_total"
+                lineas.append(f"- {self._texto_detalle_item(item, campo=campo_cantidad)} | ID {item.get('id', '-')}")
                 if "precio_unitario" in item or "subtotal" in item:
+                    precio = float(item.get("precio_unitario", 0) or 0)
+                    sufijo = " / kg" if str(item.get("unidad_medida", "")).strip().lower() == "kg" else " c/u"
                     lineas.append(
-                        f"  Precio unitario: ${item.get('precio_unitario', 0):.2f} | "
-                        f"Subtotal: ${item.get('subtotal', 0):.2f}"
+                        f"  Precio unitario: ${precio:.2f}{sufijo} | Subtotal: ${item.get('subtotal', 0):.2f}"
                     )
                 if "cantidad_pagada" in item:
-                    lineas.append(f"  Pagado: {item.get('cantidad_pagada', 0)}")
+                    lineas.append(f"  Pagado: {self._texto_cantidad(item, campo='cantidad_pagada')}")
         else:
             lineas.append("- Sin detalle adicional")
 

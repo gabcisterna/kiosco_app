@@ -36,6 +36,12 @@ def limpiar_ventana_principal(master):
     except tk.TclError:
         pass
 
+    try:
+        master.minsize(1, 1)
+        master.resizable(True, True)
+    except tk.TclError:
+        pass
+
     for evento in ("<Return>", "<F2>", "<Escape>", "<Configure>"):
         try:
             master.unbind(evento)

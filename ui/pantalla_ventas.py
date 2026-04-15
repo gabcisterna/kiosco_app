@@ -4,6 +4,7 @@ from tkinter import scrolledtext, ttk
 
 from modules.clientes import buscar_cliente
 from modules.empleados import buscar_empleado, obtener_empleado_activo
+from modules.productos import formatear_cantidad, producto_se_vende_por_kilo
 from modules.ventas import cargar_ventas
 
 
@@ -107,6 +108,26 @@ class PantallaVentas:
     def _empleado_desde_venta(self, venta):
         return buscar_empleado(venta["empleado_id"])
 
+    def _texto_cantidad_producto(self, producto, con_unidad=True):
+        return formatear_cantidad(
+            producto.get("cantidad", 0),
+            tipo_venta=producto.get("tipo_venta"),
+            con_unidad=con_unidad,
+        )
+
+    def _texto_detalle_producto(self, producto):
+        cantidad = self._texto_cantidad_producto(producto, con_unidad=True)
+        nombre = producto.get("nombre", "Producto")
+        if producto_se_vende_por_kilo(tipo_venta=producto.get("tipo_venta")):
+            return f"{cantidad} de {nombre}"
+        return f"{cantidad} x {nombre}"
+
+    def _texto_precio_producto(self, producto):
+        precio = float(producto.get("precio_unitario", 0) or 0)
+        if producto_se_vende_por_kilo(tipo_venta=producto.get("tipo_venta")):
+            return f"${precio:.2f} / kg"
+        return f"${precio:.2f} c/u"
+
     def _coincide_busqueda(self, venta, busqueda):
         empleado = self._empleado_desde_venta(venta)
         cliente = self._cliente_desde_venta(venta)
@@ -129,7 +150,7 @@ class PantallaVentas:
 
     def _detalle_resumido(self, venta):
         productos_txt = ", ".join(
-            f"{producto.get('cantidad', 0)}x {producto.get('nombre', 'Producto')}"
+            self._texto_detalle_producto(producto)
             for producto in venta.get("productos", [])
         )
 
@@ -232,12 +253,10 @@ class PantallaVentas:
 
         for producto in venta.get("productos", []):
             lineas.append(
-                f"- {producto.get('cantidad', 0)} x {producto.get('nombre', 'Producto')} "
-                f"| ID {producto.get('id', '-')}"
+                f"- {self._texto_detalle_producto(producto)} | ID {producto.get('id', '-')}"
             )
             lineas.append(
-                f"  Precio unitario: ${producto.get('precio_unitario', 0):.2f} | "
-                f"Subtotal: ${producto.get('subtotal', 0):.2f}"
+                f"  Precio: {self._texto_precio_producto(producto)} | Subtotal: ${producto.get('subtotal', 0):.2f}"
             )
 
         lineas.extend(

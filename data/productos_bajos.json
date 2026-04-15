@@ -4,20 +4,23 @@
         "nombre": "pepsi",
         "precio": 150.0,
         "stock_actual": 4,
-        "stock_minimo": 15
+        "stock_minimo": 15,
+        "tipo_venta": "unidad"
     },
     {
         "id": 3,
         "nombre": "tete",
         "precio": 120.0,
         "stock_actual": 6,
-        "stock_minimo": 10
+        "stock_minimo": 10,
+        "tipo_venta": "unidad"
     },
     {
         "id": 1,
         "nombre": "coca",
         "precio": 100.0,
         "stock_actual": 1,
-        "stock_minimo": 5
+        "stock_minimo": 5,
+        "tipo_venta": "unidad"
     }
 ]

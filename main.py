@@ -69,6 +69,7 @@ class VentanaActivacion:
         self.master.resizable(False, False)
         self.master.protocol("WM_DELETE_WINDOW", self._salir)
         self.resultado = False
+        self.estado_validado = None
         self.id_instalacion = obtener_id_instalacion()
 
         contenedor = ttk.Frame(master, padding=18)
@@ -162,6 +163,7 @@ class VentanaActivacion:
             self.master.update_idletasks()
             messagebox.showinfo("Licencia", "Licencia validada correctamente.")
             self.resultado = True
+            self.estado_validado = estado
             self.master.destroy()
             return
 
@@ -180,22 +182,26 @@ def _gestionar_licencia():
     if estado["permitir_uso"]:
         if estado["origen"] == "gracia_offline":
             _mostrar_aviso_offline(estado)
-        return True
+        return estado
 
     root_activacion = tk.Tk()
     _instalar_manejador_tk(root_activacion)
     ventana = VentanaActivacion(root_activacion, estado)
     root_activacion.mainloop()
-    return ventana.resultado
+    if ventana.resultado:
+        return ventana.estado_validado or validar_licencia()
+    return None
 
 
 def main():
     sys.excepthook = _manejar_excepcion_global
 
-    if not _gestionar_licencia():
+    estado_licencia = _gestionar_licencia()
+    if not estado_licencia:
         return
 
     root = tk.Tk()
+    root._estado_licencia = estado_licencia
     _instalar_manejador_tk(root)
     LoginApp(root)
     root.mainloop()
