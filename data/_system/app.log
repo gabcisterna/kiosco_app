@@ -80,3 +80,415 @@ Inicio de sesión registrado para Ana
 Inicio de sesión registrado para Ana
 Inicio de sesión registrado para Ana
 Inicio de sesión registrado para Ana
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 942, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 615, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 642, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 937, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 610, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 637, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 937, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 610, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 637, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 937, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 610, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 637, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+[ERROR] Error en callback de Tkinter
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 937, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 610, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 637, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 937, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 610, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 637, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 1968, in __call__
+    return self.func(*args)
+           ^^^^^^^^^^^^^^^^
+  File "C:\Users\Usuario\AppData\Local\Programs\Python\Python312\Lib\tkinter\__init__.py", line 862, in callit
+    func(*args)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 937, in _aplicar_layout_responsive
+    self._aplicar_compactacion_general(ancho_actual, alto_actual)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 610, in _aplicar_compactacion_general
+    self._aplicar_layout_busqueda_producto(ancho_disponible)
+  File "C:\Users\Usuario\OneDrive\Escritorio\Carpetas Importantes\kiosco_app\ui\pantalla_principal.py", line 637, in _aplicar_layout_busqueda_producto
+    widget.grid_forget()
+    ^^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'grid_forget'
+

@@ -102,6 +102,8 @@ class PantallaCaja:
         self.derecha_scrollbar = None
         self.derecha_scroll_content = None
         self._derecha_canvas_window = None
+        self.popup_sugerencias = None
+        self.lista_sugerencias = None
 
         self.carrito = []
         self._sugerencias_producto_actuales = []
@@ -508,11 +510,6 @@ class PantallaCaja:
             self.entrada_id.config(font=estilo["entrada_busqueda_font"])
         if self._widget_existe(self.entrada_cantidad):
             self.entrada_cantidad.config(font=estilo["entrada_cantidad_font"])
-        if self._widget_existe(self.lista_sugerencias):
-            self.lista_sugerencias.config(
-                font=estilo["sugerencias_font"],
-                height=estilo["sugerencias_altura"],
-            )
         if self._widget_existe(self.boton_agregar_producto):
             self.boton_agregar_producto.config(
                 font=estilo["campo_label_font"],
@@ -617,7 +614,6 @@ class PantallaCaja:
             self.entrada_producto_frame,
             self.label_buscar_producto,
             self.entrada_id,
-            self.lista_sugerencias,
             self.label_cantidad_producto,
             self.entrada_cantidad,
             self.boton_agregar_producto,
@@ -630,15 +626,9 @@ class PantallaCaja:
             or (ancho_disponible and int(ancho_disponible) < 1400)
         )
 
-        try:
-            sugerencias_visibles = bool(self.lista_sugerencias.winfo_manager())
-        except tk.TclError:
-            sugerencias_visibles = False
-
         for widget in [
             self.label_buscar_producto,
             self.entrada_id,
-            self.lista_sugerencias,
             self.label_cantidad_producto,
             self.entrada_cantidad,
             self.boton_agregar_producto,
@@ -648,22 +638,16 @@ class PantallaCaja:
         if compacto:
             self.label_buscar_producto.grid(row=2, column=0, sticky="w", padx=(0, 8), pady=(0, 6))
             self.entrada_id.grid(row=2, column=1, columnspan=4, sticky="ew", padx=(0, 0), ipady=6)
-            self.lista_sugerencias.grid(row=3, column=1, columnspan=4, sticky="ew", padx=(0, 0), pady=(4, 6))
             self.label_cantidad_producto.grid(row=4, column=0, sticky="w", padx=(0, 8))
             self.entrada_cantidad.grid(row=4, column=1, sticky="w", padx=(0, 12), ipady=6)
             self.boton_agregar_producto.grid(row=4, column=4, sticky="e")
         else:
             self.label_buscar_producto.grid(row=2, column=0, sticky="w", padx=(0, 8))
             self.entrada_id.grid(row=2, column=1, padx=(0, 20), sticky="ew", ipady=6)
-            self.lista_sugerencias.grid(row=3, column=1, sticky="ew", padx=(0, 20), pady=(4, 5))
             self.label_cantidad_producto.grid(row=2, column=2, sticky="w", padx=(0, 8))
             self.entrada_cantidad.grid(row=2, column=3, padx=(0, 20), ipady=6)
             self.boton_agregar_producto.grid(row=2, column=4)
 
-        if sugerencias_visibles:
-            self.lista_sugerencias.grid()
-        else:
-            self.lista_sugerencias.grid_remove()
 
     def _aplicar_compactacion_acciones(self, ancho_disponible=None, alto_disponible=None):
         widgets = [
@@ -1181,6 +1165,77 @@ class PantallaCaja:
         )
         self.boton_cerrar_sesion.pack(side=tk.RIGHT)
 
+    def _crear_popup_sugerencias(self):
+        if self.popup_sugerencias is not None:
+            try:
+                if self.popup_sugerencias.winfo_exists():
+                    return
+            except tk.TclError:
+                self.popup_sugerencias = None
+
+        self.popup_sugerencias = tk.Toplevel(self.master)
+        self.popup_sugerencias.withdraw()
+        self.popup_sugerencias.overrideredirect(True)  # sin bordes del sistema
+        self.popup_sugerencias.configure(bg="white")
+        self.popup_sugerencias.attributes("-topmost", True)
+
+        frame = tk.Frame(self.popup_sugerencias, bg="white", bd=1, relief="solid")
+        frame.pack(fill=tk.BOTH, expand=True)
+
+        self.lista_sugerencias = tk.Listbox(
+            frame,
+            font=self.font_sugerencias,
+            height=7,
+            width=50,
+            bg="white",
+            fg="black",
+            relief="flat",
+            bd=0,
+            activestyle="none"
+        )
+        self.lista_sugerencias.pack(fill=tk.BOTH, expand=True, padx=2, pady=2)
+
+        self.lista_sugerencias.bind("<<ListboxSelect>>", self.seleccionar_sugerencia)
+        self.lista_sugerencias.bind("<Double-Button-1>", self.seleccionar_sugerencia)
+        self.lista_sugerencias.bind("<Return>", self.seleccionar_sugerencia)
+
+    def _posicionar_popup_sugerencias(self):
+        if not self.popup_sugerencias or not self.lista_sugerencias:
+            return
+    
+        try:
+            x = self.entrada_id.winfo_rootx()
+            y_entry = self.entrada_id.winfo_rooty()
+            ancho = self.entrada_id.winfo_width()
+        except tk.TclError:
+            return
+    
+        alto = 190  # mismo alto que venías usando
+    
+        # 👇 clave: restar el alto en vez de sumarlo
+        y = y_entry - alto - 2
+    
+        self.popup_sugerencias.geometry(f"{ancho}x{alto}+{x}+{y}")
+
+    def _focus_lista_sugerencias(self, event=None):
+        if self.lista_sugerencias and self.popup_sugerencias:
+            try:
+                if self.popup_sugerencias.winfo_viewable() and self.lista_sugerencias.size() > 0:
+                    self.lista_sugerencias.focus_set()
+                    self.lista_sugerencias.selection_clear(0, tk.END)
+                    self.lista_sugerencias.selection_set(0)
+                    self.lista_sugerencias.activate(0)
+                    return "break"
+            except tk.TclError:
+                pass
+
+    def _on_focus_out_buscador(self, event=None):
+        self.master.after(150, self._cerrar_si_no_hay_foco_en_sugerencias)
+
+    def _cerrar_si_no_hay_foco_en_sugerencias(self):
+        widget_con_foco = self.master.focus_get()
+        if widget_con_foco not in [self.entrada_id, self.lista_sugerencias]:
+            self._ocultar_sugerencias()
 
     def crear_entrada_producto(self, frame):
         tarjeta = self._crear_tarjeta(frame, pady=(0, 14))
@@ -1212,15 +1267,12 @@ class PantallaCaja:
         self.label_buscar_producto.grid(row=2, column=0, sticky="w", padx=(0, 8))
 
         self.entrada_id = tk.Entry(sub_frame, font=self.font_busqueda, relief="solid", bd=2, width=34, bg="white")
+        self.entrada_id.bind("<Down>", self._focus_lista_sugerencias)
+        self.entrada_id.bind("<FocusOut>", self._on_focus_out_buscador)
         self.entrada_id.grid(row=2, column=1, padx=(0, 20), sticky="ew", ipady=6)
         self.entrada_id.bind("<KeyRelease>", self.autocompletar_producto)
 
-        # Lista de sugerencias (se crea pero se oculta hasta que haya sugerencias)
-        self.lista_sugerencias = tk.Listbox(sub_frame, font=self.font_sugerencias, height=7, width=44, bg="white", fg="black", relief="solid", bd=1)
-        self.lista_sugerencias.grid(row=3, column=1, sticky="ew", padx=(0, 20), pady=(4, 5))
-        self.lista_sugerencias.bind("<<ListboxSelect>>", self.seleccionar_sugerencia)
-        self.lista_sugerencias.bind("<Double-Button-1>", self.seleccionar_sugerencia)
-        self.lista_sugerencias.grid_remove()  # Oculta inicialmente
+
 
         # --- Cantidad ---
         self.label_cantidad_producto = tk.Label(sub_frame, text="Cantidad:", font=("Segoe UI", 13, "bold"), bg=self.color_tarjeta, fg=self.color_texto)
@@ -1613,8 +1665,15 @@ class PantallaCaja:
 
 
     def _ocultar_sugerencias(self):
-        self.lista_sugerencias.delete(0, tk.END)
-        self.lista_sugerencias.grid_remove()
+        if self.lista_sugerencias:
+            self.lista_sugerencias.delete(0, tk.END)
+
+        if self.popup_sugerencias is not None:
+            try:
+                if self.popup_sugerencias.winfo_exists():
+                    self.popup_sugerencias.withdraw()
+            except tk.TclError:
+                self.popup_sugerencias = None
 
     def _extraer_id_desde_texto_producto(self, texto):
         candidato = texto.split(" - ", 1)[0].strip()
@@ -1708,22 +1767,30 @@ class PantallaCaja:
             self._ocultar_sugerencias()
             return
 
+        if self.popup_sugerencias is None or not self.popup_sugerencias.winfo_exists():
+            self._crear_popup_sugerencias()
+
         self.lista_sugerencias.delete(0, tk.END)
         for prod in sugerencias:
             self.lista_sugerencias.insert(tk.END, self._texto_sugerencia_producto(prod))
-        self.lista_sugerencias.grid()
 
-    def seleccionar_sugerencia(self, event):
-        if not self.lista_sugerencias.curselection():
+        self._posicionar_popup_sugerencias()
+        self.popup_sugerencias.deiconify()
+        self.popup_sugerencias.lift()
+
+    def seleccionar_sugerencia(self, event=None):
+        if not self.lista_sugerencias or not self.lista_sugerencias.curselection():
             return
 
         seleccion = self.lista_sugerencias.get(self.lista_sugerencias.curselection()[0])
         self.entrada_id.delete(0, tk.END)
         self.entrada_id.insert(0, seleccion)
+
         producto = None
         prod_id = self._extraer_id_desde_texto_producto(seleccion)
         if prod_id is not None:
             producto = buscar_producto(prod_id)
+
         self._restablecer_cantidad_producto(producto)
         self._ocultar_sugerencias()
         self.entrada_cantidad.focus_set()

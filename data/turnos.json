@@ -310,5 +310,35 @@
         "usuario": "prueba",
         "inicio": "2026-04-15 07:40:24",
         "fin": null
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-15 08:23:13",
+        "fin": "2026-04-15 08:23:44"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-15 08:24:10",
+        "fin": "2026-04-15 08:25:20"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-15 08:27:43",
+        "fin": "2026-04-15 08:27:47"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-15 08:29:00",
+        "fin": "2026-04-15 08:30:04"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-15 08:31:10",
+        "fin": "2026-04-15 08:33:12"
     }
 ]
