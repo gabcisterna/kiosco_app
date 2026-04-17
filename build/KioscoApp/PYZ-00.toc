@@ -709,6 +709,10 @@
    'C:\\Users\\Usuario\\OneDrive\\Escritorio\\Carpetas '
    'Importantes\\kiosco_app\\modules\\reportes.py',
    'PYMODULE'),
+  ('modules.reposiciones',
+   'C:\\Users\\Usuario\\OneDrive\\Escritorio\\Carpetas '
+   'Importantes\\kiosco_app\\modules\\reposiciones.py',
+   'PYMODULE'),
   ('modules.rutas',
    'C:\\Users\\Usuario\\OneDrive\\Escritorio\\Carpetas '
    'Importantes\\kiosco_app\\modules\\rutas.py',

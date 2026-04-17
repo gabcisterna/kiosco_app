@@ -15,6 +15,7 @@ from modules.productos import (
     listar_productos_con_stock_bajo,
     normalizar_tipo_venta,
 )
+from modules.reposiciones import registrar_reposicion_stock
 
 
 class PantallaProductos:
@@ -118,6 +119,12 @@ class PantallaProductos:
                 boton_frame,
                 text="Editar",
                 command=self.editar_producto_ui,
+                **estilo_boton,
+            ).pack(side=tk.LEFT, padx=10)
+            tk.Button(
+                boton_frame,
+                text="Reponer",
+                command=self.reponer_stock_ui,
                 **estilo_boton,
             ).pack(side=tk.LEFT, padx=10)
             tk.Button(
@@ -422,20 +429,169 @@ class PantallaProductos:
             return
         self._abrir_form_producto()
 
+    def _obtener_producto_seleccionado(self):
+        seleccionado = self.tree.focus()
+        if not seleccionado:
+            messagebox.showwarning("Atencion", "Selecciona un producto.")
+            return None
+
+        producto = buscar_producto(int(seleccionado))
+        if not producto:
+            messagebox.showerror("Error", "No se encontro el producto.")
+            return None
+        return producto
+
+    def _abrir_form_reposicion(self, producto):
+        win = tk.Toplevel(self.master)
+        win.title(f"Reponer stock: {producto['nombre']}")
+        win.configure(bg="#f5f5f5")
+        win.resizable(False, False)
+        win.transient(self.master)
+        win.grab_set()
+
+        container = tk.Frame(win, bg="#f5f5f5")
+        container.pack(padx=20, pady=15, fill=tk.BOTH, expand=True)
+
+        tk.Label(
+            container,
+            text=f"Reposicion para {producto['nombre']}",
+            bg="#f5f5f5",
+            font=("Segoe UI", 12, "bold"),
+        ).grid(row=0, column=0, columnspan=2, sticky="w", pady=(0, 10))
+
+        cantidad_var = tk.StringVar(value="0.250" if self._tipo_desde_label(self._tipo_label(producto.get("tipo_venta"))) == TIPO_VENTA_KILO else "1")
+        costo_var = tk.StringVar(value="")
+        ayuda_var = tk.StringVar()
+
+        def label(texto, fila):
+            tk.Label(container, text=texto, bg="#f5f5f5", font=("Segoe UI", 10)).grid(
+                row=fila,
+                column=0,
+                sticky="w",
+                pady=6,
+            )
+
+        def entry(variable, fila):
+            campo = ttk.Entry(container, textvariable=variable, width=35)
+            campo.grid(row=fila, column=1, sticky="w", pady=6)
+            return campo
+
+        tipo_venta = normalizar_tipo_venta(producto.get("tipo_venta"))
+        unidad = "kg" if tipo_venta == TIPO_VENTA_KILO else "u"
+
+        label("ID:", 1)
+        tk.Label(container, text=str(producto["id"]), bg="#f5f5f5", font=("Segoe UI", 10, "bold")).grid(
+            row=1, column=1, sticky="w", pady=6
+        )
+
+        label("Stock actual:", 2)
+        tk.Label(
+            container,
+            text=formatear_cantidad(producto.get("stock_actual", 0), producto=producto, con_unidad=True),
+            bg="#f5f5f5",
+            font=("Segoe UI", 10, "bold"),
+        ).grid(row=2, column=1, sticky="w", pady=6)
+
+        label("Precio de venta:", 3)
+        tk.Label(container, text=describir_precio_producto(producto), bg="#f5f5f5", font=("Segoe UI", 10, "bold")).grid(
+            row=3, column=1, sticky="w", pady=6
+        )
+
+        label(f"Cantidad a agregar ({unidad}):", 4)
+        e_cantidad = entry(cantidad_var, 4)
+
+        label(f"Precio de compra por {unidad}:", 5)
+        e_costo = entry(costo_var, 5)
+
+        ayuda_texto = (
+            "Usa decimales si el producto se vende por kilo."
+            if tipo_venta == TIPO_VENTA_KILO
+            else "Para productos por unidad, ingresa una cantidad entera."
+        )
+        ayuda_var.set(f"{ayuda_texto} El registro guardara fecha, hora, responsable y costo.")
+        tk.Label(
+            container,
+            textvariable=ayuda_var,
+            bg="#f5f5f5",
+            fg="#5b6470",
+            font=("Segoe UI", 9),
+            justify="left",
+            wraplength=360,
+        ).grid(row=6, column=0, columnspan=2, sticky="w", pady=(0, 10))
+
+        botones = tk.Frame(container, bg="#f5f5f5")
+        botones.grid(row=7, column=0, columnspan=2, sticky="e", pady=(12, 0))
+
+        def guardar():
+            ok, resultado = registrar_reposicion_stock(
+                producto["id"],
+                cantidad_var.get().strip(),
+                costo_var.get().strip(),
+            )
+            if not ok:
+                messagebox.showerror("Error", resultado, parent=win)
+                return
+
+            detalle = resultado["detalle"][0]
+            messagebox.showinfo(
+                "Exito",
+                (
+                    f"Stock repuesto correctamente.\n\n"
+                    f"Producto: {resultado['producto_nombre']}\n"
+                    f"Cantidad: {formatear_cantidad(detalle['cantidad'], tipo_venta=detalle.get('tipo_venta'), con_unidad=True)}\n"
+                    f"Costo total: ${resultado['monto']:.2f}"
+                ),
+                parent=win,
+            )
+            win.destroy()
+            self.actualizar_lista()
+
+        tk.Button(
+            botones,
+            text="Guardar",
+            command=guardar,
+            font=("Segoe UI", 10, "bold"),
+            bg="#4CAF50",
+            fg="white",
+            activebackground="#45a049",
+            bd=0,
+            width=12,
+        ).pack(side=tk.LEFT, padx=8)
+
+        tk.Button(
+            botones,
+            text="Cancelar",
+            command=win.destroy,
+            font=("Segoe UI", 10, "bold"),
+            bg="#9e9e9e",
+            fg="white",
+            activebackground="#8d8d8d",
+            bd=0,
+            width=12,
+        ).pack(side=tk.LEFT)
+
+        e_cantidad.focus_set()
+        e_cantidad.bind("<Return>", lambda event: (e_costo.focus_set(), "break")[1])
+        win.bind("<Return>", lambda event: guardar())
+        win.bind("<Escape>", lambda event: win.destroy())
+
+    def reponer_stock_ui(self):
+        if self.solo_lectura:
+            messagebox.showwarning("Solo lectura", "Este usuario solo puede consultar productos.")
+            return
+
+        producto = self._obtener_producto_seleccionado()
+        if not producto:
+            return
+        self._abrir_form_reposicion(producto)
+
     def editar_producto_ui(self):
         if self.solo_lectura:
             messagebox.showwarning("Solo lectura", "Este usuario solo puede consultar productos.")
             return
 
-        seleccionado = self.tree.focus()
-        if not seleccionado:
-            messagebox.showwarning("Atencion", "Selecciona un producto para editar.")
-            return
-
-        producto_id = int(seleccionado)
-        producto = buscar_producto(producto_id)
+        producto = self._obtener_producto_seleccionado()
         if not producto:
-            messagebox.showerror("Error", "No se encontro el producto.")
             return
 
         self._abrir_form_producto(producto=producto)

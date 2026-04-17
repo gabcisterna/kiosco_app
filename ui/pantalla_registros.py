@@ -4,20 +4,39 @@ from tkinter import scrolledtext, ttk
 
 from modules.deudas import cargar_registro_deudas
 from modules.productos import formatear_cantidad, producto_se_vende_por_kilo
+from modules.reposiciones import cargar_registro_stock
 
 
 class PantallaRegistros:
     def __init__(self, master):
         self.master = tk.Toplevel(master)
-        self.master.title("Registros de Deudas")
-        self.master.geometry("1180x640")
+        self.master.title("Registros")
+        self.master.geometry("1220x680")
         self.master.configure(bg="#f0f0f0")
 
         self.orden_var = tk.StringVar(value="Fecha descendente")
+        self.filtro_var = tk.StringVar(value="Todos")
         self.registros_por_item = {}
 
         top_frame = tk.Frame(self.master, bg="#f0f0f0")
         top_frame.pack(pady=10, padx=12, fill=tk.X)
+
+        tk.Label(
+            top_frame,
+            text="Ver:",
+            bg="#f0f0f0",
+            font=("Segoe UI", 10),
+        ).pack(side=tk.LEFT, padx=(0, 5))
+
+        self.combo_filtro = ttk.Combobox(
+            top_frame,
+            values=["Todos", "Deudas", "Reposiciones"],
+            state="readonly",
+            textvariable=self.filtro_var,
+            width=18,
+        )
+        self.combo_filtro.pack(side=tk.LEFT, padx=(0, 12))
+        self.combo_filtro.bind("<<ComboboxSelected>>", lambda event: self.actualizar_lista())
 
         tk.Label(
             top_frame,
@@ -52,29 +71,29 @@ class PantallaRegistros:
 
         frame = tk.LabelFrame(
             self.master,
-            text="Movimientos de deuda",
+            text="Movimientos registrados",
             font=("Segoe UI", 11, "bold"),
             bg="#f0f0f0",
             fg="#333",
         )
         frame.pack(fill=tk.BOTH, expand=True, padx=12, pady=10)
 
-        columnas = ("fecha", "dni", "nombre", "tipo", "detalle", "monto")
+        columnas = ("fecha", "referencia", "responsable", "tipo", "detalle", "monto")
         self.tree = ttk.Treeview(frame, columns=columnas, show="headings")
         self.tree.pack(fill=tk.BOTH, expand=True)
         self.tree.bind("<Double-1>", self.abrir_detalle_registro)
 
         self.tree.heading("fecha", text="Fecha")
-        self.tree.heading("dni", text="DNI")
-        self.tree.heading("nombre", text="Nombre")
+        self.tree.heading("referencia", text="Referencia")
+        self.tree.heading("responsable", text="Responsable")
         self.tree.heading("tipo", text="Tipo")
         self.tree.heading("detalle", text="Detalle")
         self.tree.heading("monto", text="Monto")
 
         self.tree.column("fecha", width=130, anchor="center")
-        self.tree.column("dni", width=90, anchor="center")
-        self.tree.column("nombre", width=150, anchor="center")
-        self.tree.column("tipo", width=100, anchor="center")
+        self.tree.column("referencia", width=110, anchor="center")
+        self.tree.column("responsable", width=160, anchor="center")
+        self.tree.column("tipo", width=150, anchor="center")
         self.tree.column("detalle", width=560, anchor="w")
         self.tree.column("monto", width=110, anchor="center")
 
@@ -113,6 +132,13 @@ class PantallaRegistros:
     def _detalle_resumido(self, registro):
         detalle_lista = registro.get("detalle", [])
         if not detalle_lista:
+            if registro.get("_origen") == "stock" and registro.get("producto_nombre"):
+                cantidad = formatear_cantidad(
+                    registro.get("cantidad", 0),
+                    tipo_venta=registro.get("tipo_venta"),
+                    con_unidad=True,
+                )
+                return f"{cantidad} para {registro.get('producto_nombre', '')}"
             return "-"
 
         partes = []
@@ -125,11 +151,44 @@ class PantallaRegistros:
                 partes.append(self._texto_detalle_item(detalle, campo=campo_cantidad))
         return ", ".join(partes)
 
+    def _normalizar_registro_deuda(self, registro):
+        return {
+            **registro,
+            "_origen": "deuda",
+            "referencia": registro.get("dni", ""),
+            "responsable": registro.get("nombre", ""),
+            "tipo": registro.get("tipo", "Movimiento de deuda"),
+        }
+
+    def _normalizar_registro_stock(self, registro):
+        tipo = registro.get("tipo") or "Reposicion de stock"
+        referencia = registro.get("referencia") or f"ID {registro.get('producto_id', '')}"
+        responsable = registro.get("responsable") or registro.get("empleado_nombre", "")
+        return {
+            **registro,
+            "_origen": "stock",
+            "referencia": referencia,
+            "responsable": responsable,
+            "tipo": tipo,
+        }
+
+    def _cargar_registros(self):
+        registros = [self._normalizar_registro_deuda(registro) for registro in cargar_registro_deudas()]
+        registros.extend(self._normalizar_registro_stock(registro) for registro in cargar_registro_stock())
+
+        filtro = self.filtro_var.get()
+        if filtro == "Deudas":
+            registros = [registro for registro in registros if registro.get("_origen") == "deuda"]
+        elif filtro == "Reposiciones":
+            registros = [registro for registro in registros if registro.get("_origen") == "stock"]
+
+        return registros
+
     def actualizar_lista(self):
         self.tree.delete(*self.tree.get_children())
         self.registros_por_item.clear()
 
-        registros = cargar_registro_deudas()
+        registros = self._cargar_registros()
         orden = self.orden_var.get()
         reverse = "descendente" in orden
         clave = "fecha" if "Fecha" in orden else "monto"
@@ -147,8 +206,8 @@ class PantallaRegistros:
                 iid=item_id,
                 values=(
                     self._formatear_fecha(registro.get("fecha")),
-                    registro.get("dni", ""),
-                    registro.get("nombre", ""),
+                    registro.get("referencia", ""),
+                    registro.get("responsable", ""),
                     registro.get("tipo", "General"),
                     self._detalle_resumido(registro),
                     f"${registro.get('monto', 0):.2f}",
@@ -168,12 +227,24 @@ class PantallaRegistros:
         lineas = [
             f"Fecha: {registro.get('fecha', '')}",
             f"Tipo: {registro.get('tipo', 'General')}",
-            f"DNI: {registro.get('dni', '')}",
-            f"Nombre: {registro.get('nombre', '')}",
+            f"Referencia: {registro.get('referencia', '')}",
+            f"Responsable: {registro.get('responsable', '')}",
             f"Monto: ${registro.get('monto', 0):.2f}",
-            "",
-            "Detalle:",
         ]
+
+        if registro.get("_origen") == "stock":
+            lineas.extend(
+                [
+                    f"Producto: {registro.get('producto_nombre', '')}",
+                    f"ID producto: {registro.get('producto_id', '')}",
+                    f"Precio de compra: ${float(registro.get('precio_costo', 0) or 0):.2f}",
+                    f"Precio de venta actual: ${float(registro.get('precio_venta', 0) or 0):.2f}",
+                    f"Stock anterior: {formatear_cantidad(registro.get('stock_anterior', 0), tipo_venta=registro.get('tipo_venta'), con_unidad=True)}",
+                    f"Stock nuevo: {formatear_cantidad(registro.get('stock_nuevo', 0), tipo_venta=registro.get('tipo_venta'), con_unidad=True)}",
+                ]
+            )
+
+        lineas.extend(["", "Detalle:"])
 
         detalle = registro.get("detalle", [])
         if detalle:
@@ -188,6 +259,15 @@ class PantallaRegistros:
                     )
                 if "cantidad_pagada" in item:
                     lineas.append(f"  Pagado: {self._texto_cantidad(item, campo='cantidad_pagada')}")
+                if "stock_anterior" in item or "stock_nuevo" in item:
+                    lineas.append(
+                        "  Stock: "
+                        f"{formatear_cantidad(item.get('stock_anterior', 0), tipo_venta=item.get('tipo_venta'), con_unidad=True)}"
+                        " -> "
+                        f"{formatear_cantidad(item.get('stock_nuevo', 0), tipo_venta=item.get('tipo_venta'), con_unidad=True)}"
+                    )
+                if "precio_venta" in item:
+                    lineas.append(f"  Precio de venta actual: ${float(item.get('precio_venta', 0) or 0):.2f}")
         else:
             lineas.append("- Sin detalle adicional")
 

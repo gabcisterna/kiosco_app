@@ -201,6 +201,31 @@ def restar_stock(producto_id, cantidad):
     return False
 
 
+def sumar_stock(producto_id, cantidad):
+    productos = cargar_productos()
+    for producto in productos:
+        if int(producto["id"]) != int(producto_id):
+            continue
+
+        cantidad_normalizada = parsear_cantidad_para_producto(cantidad, producto=producto)
+        stock_actual = _float_local(producto.get("stock_actual", 0))
+        producto["stock_actual"] = normalizar_cantidad_guardada(
+            stock_actual + cantidad_normalizada,
+            producto=producto,
+        )
+        guardar_productos(productos)
+        _sincronizar_productos_bajos(producto)
+
+        log(
+            f"Stock repuesto: {producto['nombre']} - Nuevo stock: "
+            f"{formatear_cantidad(producto['stock_actual'], producto=producto, con_unidad=True)}"
+        )
+        return True
+
+    log(f"Error: producto con ID {producto_id} no encontrado.")
+    return False
+
+
 def agregar_producto(nuevo_producto):
     producto_normalizado = normalizar_producto(nuevo_producto)
     productos = cargar_productos()
