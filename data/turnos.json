@@ -340,5 +340,23 @@
         "usuario": "prueba",
         "inicio": "2026-04-15 08:31:10",
         "fin": "2026-04-15 08:33:12"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-16 14:39:23",
+        "fin": "2026-04-16 15:42:34"
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-17 14:18:20",
+        "fin": null
+    },
+    {
+        "empleado": "prueba",
+        "usuario": "prueba",
+        "inicio": "2026-04-17 14:25:52",
+        "fin": "2026-04-17 14:26:44"
     }
 ]

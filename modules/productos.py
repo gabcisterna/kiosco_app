@@ -154,6 +154,15 @@ def guardar_productos_bajos(productos):
     _guardar_lista_productos(RUTA_PRODUCTOS_BAJOS, productos)
 
 
+def _quitar_de_productos_bajos(producto_id):
+    productos_bajos = [
+        producto
+        for producto in cargar_productos_bajos()
+        if str(producto["id"]) != str(producto_id)
+    ]
+    guardar_productos_bajos(productos_bajos)
+
+
 def _recalcular_deudas_pendientes():
     from modules.deudas import recalcular_deudas_pendientes
 
@@ -224,10 +233,7 @@ def eliminar_producto(producto_id):
         if int(producto["id"]) == int(producto_id):
             del productos[i]
             guardar_productos(productos)
-
-            productos_bajos = cargar_productos_bajos()
-            productos_bajos = [p for p in productos_bajos if str(p["id"]) != str(producto_id)]
-            guardar_productos_bajos(productos_bajos)
+            _quitar_de_productos_bajos(producto_id)
 
             log(f"Producto eliminado: {producto['nombre']} - ID: {producto['id']}")
             return True
@@ -257,24 +263,39 @@ def _sincronizar_productos_bajos(producto_actualizado):
 
 def actualizar_producto(producto_id, nuevos_datos):
     productos = cargar_productos()
-    for producto in productos:
+    for indice, producto in enumerate(productos):
         if int(producto["id"]) != int(producto_id):
             continue
 
+        producto_anterior = normalizar_producto(producto)
         precio_anterior = float(producto.get("precio", 0))
         nuevos_datos = dict(nuevos_datos)
-        nuevos_datos.pop("id", None)
-        producto.update(nuevos_datos)
-        producto_normalizado = normalizar_producto(producto)
-        producto.update(producto_normalizado)
+        nuevo_id = nuevos_datos.get("id", producto_id)
+
+        try:
+            nuevo_id = int(nuevo_id)
+        except (TypeError, ValueError):
+            log("Error: el nuevo ID del producto no es valido.")
+            return False
+
+        if nuevo_id != int(producto_id) and any(int(p["id"]) == nuevo_id for p in productos):
+            log(f"Aviso: ya existe un producto con ID {nuevo_id}.")
+            return False
+
+        producto_actualizado = {**producto, **nuevos_datos, "id": nuevo_id}
+        producto_normalizado = normalizar_producto(producto_actualizado)
+        productos[indice] = producto_normalizado
         guardar_productos(productos)
 
-        _sincronizar_productos_bajos(producto)
+        if int(producto_anterior["id"]) != int(producto_normalizado["id"]):
+            _quitar_de_productos_bajos(producto_anterior["id"])
 
-        if "precio" in nuevos_datos and float(producto.get("precio", 0)) != precio_anterior:
+        _sincronizar_productos_bajos(producto_normalizado)
+
+        if "precio" in nuevos_datos and float(producto_normalizado.get("precio", 0)) != precio_anterior:
             _recalcular_deudas_pendientes()
 
-        log(f"Producto actualizado: {producto['nombre']} - ID: {producto['id']}")
+        log(f"Producto actualizado: {producto_normalizado['nombre']} - ID: {producto_normalizado['id']}")
         return True
 
     log(f"Error: producto con ID {producto_id} no encontrado.")

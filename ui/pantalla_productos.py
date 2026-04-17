@@ -261,12 +261,9 @@ class PantallaProductos:
             return campo
 
         fila = 1
-        if not es_edicion:
-            label("ID:", fila)
-            e_id = entry(id_var, fila)
-            fila += 1
-        else:
-            e_id = None
+        label("ID:", fila)
+        e_id = entry(id_var, fila)
+        fila += 1
 
         label("Nombre:", fila)
         e_nombre = entry(nombre_var, fila)
@@ -332,21 +329,21 @@ class PantallaProductos:
                 messagebox.showerror("Error", "El nombre no puede estar vacio.", parent=win)
                 return
 
-            if es_edicion:
-                producto_id = int(producto["id"])
-            else:
-                id_txt = id_var.get().strip()
-                if not id_txt.isdigit():
-                    messagebox.showerror("Error", "El ID debe ser un numero entero.", parent=win)
-                    return
-                producto_id = int(id_txt)
-                if buscar_producto(producto_id):
-                    messagebox.showerror(
-                        "Error",
-                        f"Ya existe un producto con ID {producto_id}.",
-                        parent=win,
-                    )
-                    return
+            id_txt = id_var.get().strip()
+            if not id_txt.isdigit():
+                messagebox.showerror("Error", "El ID debe ser un numero entero.", parent=win)
+                return
+
+            producto_id = int(id_txt)
+            producto_id_original = int(producto["id"]) if es_edicion else None
+            producto_existente = buscar_producto(producto_id)
+            if producto_existente and (not es_edicion or producto_id != producto_id_original):
+                messagebox.showerror(
+                    "Error",
+                    f"Ya existe un producto con ID {producto_id}.",
+                    parent=win,
+                )
+                return
 
             try:
                 precio = float(precio_var.get().strip().replace(",", "."))
@@ -361,6 +358,7 @@ class PantallaProductos:
                 return
 
             nuevos_datos = {
+                "id": producto_id,
                 "nombre": nombre,
                 "precio": precio,
                 "stock_actual": stock_actual,
@@ -369,7 +367,7 @@ class PantallaProductos:
             }
 
             if es_edicion:
-                ok = actualizar_producto(producto_id, nuevos_datos)
+                ok = actualizar_producto(producto_id_original, nuevos_datos)
                 mensaje_ok = "Producto actualizado correctamente"
             else:
                 ok = agregar_producto({"id": producto_id, **nuevos_datos})
@@ -412,11 +410,8 @@ class PantallaProductos:
         actualizar_textos()
         combo_tipo.bind("<<ComboboxSelected>>", actualizar_textos)
 
-        if e_id is not None:
-            e_id.focus_set()
-            e_id.bind("<Return>", lambda event: (e_nombre.focus_set(), "break")[1])
-        else:
-            e_nombre.focus_set()
+        e_id.focus_set()
+        e_id.bind("<Return>", lambda event: (e_nombre.focus_set(), "break")[1])
 
         win.bind("<Return>", lambda e: guardar())
         win.bind("<Escape>", lambda e: cancelar())

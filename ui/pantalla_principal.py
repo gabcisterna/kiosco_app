@@ -6,7 +6,6 @@ from modules.login import cerrar_sesion
 from modules.productos import (
     buscar_producto,
     buscar_productos_por_texto,
-    describir_precio_producto,
     formatear_cantidad,
     listar_productos_con_stock_bajo,
     obtener_unidad_medida,
@@ -84,9 +83,13 @@ class PantallaCaja:
         self.label_carrito_titulo = None
         self.label_ayuda_carrito = None
         self.menu_carrito_acciones = None
+        self.lista_y_stock_frame = None
+        self.carrito_frame = None
+        self.stock_card_frame = None
         self.label_cliente_pago_titulo = None
         self.forma_frame = None
         self.fila_pago_frame = None
+        self.label_pago_detalle = None
         self.label_resumen_pago_titulo = None
         self.resumen_frame = None
         self.aviso_licencia_frame = None
@@ -107,6 +110,7 @@ class PantallaCaja:
 
         self.carrito = []
         self._sugerencias_producto_actuales = []
+        self._producto_sugerido_actual = None
         self.empleado = obtener_empleado_activo()
         self.permisos = obtener_permisos_empleado(self.empleado)
         self.label_resumen_carrito = None
@@ -140,8 +144,8 @@ class PantallaCaja:
         self._crear_panel_derecho_scrollable()
 
         # Parte izquierda
-        self.crear_lista_productos(self.izquierda_frame)
         self.crear_entrada_producto(self.izquierda_frame)
+        self.crear_lista_productos(self.izquierda_frame)
         self.mostrar_productos_stock_bajo(self.izquierda_frame)
         # Eliminamos la creación de botones aquí:
         # self.crear_botones_y_finalizar(self.izquierda_frame)
@@ -340,11 +344,15 @@ class PantallaCaja:
                 "cerrar_pady": 8,
                 "titulo_seccion_font": ("Segoe UI", 16, "bold"),
                 "subtitulo_font": ("Segoe UI", 10),
-                "entrada_frame_padx": 18,
-                "entrada_frame_pady": 16,
-                "campo_label_font": ("Segoe UI", 13, "bold"),
-                "entrada_busqueda_font": ("Segoe UI", 17, "bold"),
-                "entrada_cantidad_font": ("Segoe UI", 15, "bold"),
+                "entrada_titulo_font": ("Segoe UI", 14, "bold"),
+                "mostrar_entrada_titulo": True,
+                "mostrar_entrada_descripcion": False,
+                "entrada_frame_padx": 14,
+                "entrada_frame_pady": 12,
+                "campo_label_font": ("Segoe UI", 12, "bold"),
+                "entrada_busqueda_font": ("Segoe UI", 16, "bold"),
+                "entrada_cantidad_font": ("Segoe UI", 14, "bold"),
+                "boton_agregar_font": ("Segoe UI", 12, "bold"),
                 "sugerencias_font": self.font_sugerencias,
                 "sugerencias_altura": 7,
                 "lista_font": self.font_lista,
@@ -352,6 +360,10 @@ class PantallaCaja:
                 "forma_font": self.font_pequena,
                 "forma_padx": 10,
                 "forma_pady": 5,
+                "pago_titulo_font": ("Segoe UI", 12, "bold"),
+                "pago_detalle_font": ("Segoe UI", 9),
+                "pago_entry_font": ("Segoe UI", 19, "bold"),
+                "pago_entry_ipady": 8,
                 "toggle_font": self.font_pequena,
                 "toggle_padx": 12,
                 "toggle_pady": 6,
@@ -387,11 +399,15 @@ class PantallaCaja:
                 "cerrar_pady": 6,
                 "titulo_seccion_font": ("Segoe UI", 15, "bold"),
                 "subtitulo_font": ("Segoe UI", 9),
-                "entrada_frame_padx": 14,
-                "entrada_frame_pady": 12,
-                "campo_label_font": ("Segoe UI", 12, "bold"),
-                "entrada_busqueda_font": ("Segoe UI", 15, "bold"),
-                "entrada_cantidad_font": ("Segoe UI", 13, "bold"),
+                "entrada_titulo_font": ("Segoe UI", 13, "bold"),
+                "mostrar_entrada_titulo": False,
+                "mostrar_entrada_descripcion": False,
+                "entrada_frame_padx": 12,
+                "entrada_frame_pady": 10,
+                "campo_label_font": ("Segoe UI", 11, "bold"),
+                "entrada_busqueda_font": ("Segoe UI", 14, "bold"),
+                "entrada_cantidad_font": ("Segoe UI", 12, "bold"),
+                "boton_agregar_font": ("Segoe UI", 11, "bold"),
                 "sugerencias_font": ("Segoe UI", 11),
                 "sugerencias_altura": 5,
                 "lista_font": ("Segoe UI", 13, "bold"),
@@ -399,6 +415,10 @@ class PantallaCaja:
                 "forma_font": ("Segoe UI", 9),
                 "forma_padx": 8,
                 "forma_pady": 4,
+                "pago_titulo_font": ("Segoe UI", 11, "bold"),
+                "pago_detalle_font": ("Segoe UI", 8),
+                "pago_entry_font": ("Segoe UI", 17, "bold"),
+                "pago_entry_ipady": 7,
                 "toggle_font": ("Segoe UI", 9),
                 "toggle_padx": 10,
                 "toggle_pady": 5,
@@ -434,11 +454,15 @@ class PantallaCaja:
                 "cerrar_pady": 5,
                 "titulo_seccion_font": ("Segoe UI", 14, "bold"),
                 "subtitulo_font": ("Segoe UI", 8),
-                "entrada_frame_padx": 12,
-                "entrada_frame_pady": 10,
-                "campo_label_font": ("Segoe UI", 11, "bold"),
-                "entrada_busqueda_font": ("Segoe UI", 14, "bold"),
-                "entrada_cantidad_font": ("Segoe UI", 12, "bold"),
+                "entrada_titulo_font": ("Segoe UI", 12, "bold"),
+                "mostrar_entrada_titulo": False,
+                "mostrar_entrada_descripcion": False,
+                "entrada_frame_padx": 10,
+                "entrada_frame_pady": 8,
+                "campo_label_font": ("Segoe UI", 10, "bold"),
+                "entrada_busqueda_font": ("Segoe UI", 13, "bold"),
+                "entrada_cantidad_font": ("Segoe UI", 11, "bold"),
+                "boton_agregar_font": ("Segoe UI", 10, "bold"),
                 "sugerencias_font": ("Segoe UI", 10),
                 "sugerencias_altura": 4,
                 "lista_font": ("Segoe UI", 12, "bold"),
@@ -446,6 +470,10 @@ class PantallaCaja:
                 "forma_font": ("Segoe UI", 8),
                 "forma_padx": 6,
                 "forma_pady": 4,
+                "pago_titulo_font": ("Segoe UI", 10, "bold"),
+                "pago_detalle_font": ("Segoe UI", 8),
+                "pago_entry_font": ("Segoe UI", 15, "bold"),
+                "pago_entry_ipady": 6,
                 "toggle_font": ("Segoe UI", 8),
                 "toggle_padx": 8,
                 "toggle_pady": 4,
@@ -499,9 +527,20 @@ class PantallaCaja:
                 pady=estilo["entrada_frame_pady"],
             )
         if self._widget_existe(self.label_entrada_producto_titulo):
-            self.label_entrada_producto_titulo.config(font=estilo["titulo_seccion_font"])
+            self.label_entrada_producto_titulo.config(font=estilo["entrada_titulo_font"])
+            if estilo["mostrar_entrada_titulo"]:
+                self.label_entrada_producto_titulo.grid()
+            else:
+                self.label_entrada_producto_titulo.grid_remove()
         if self._widget_existe(self.label_entrada_producto_descripcion):
-            self.label_entrada_producto_descripcion.config(font=estilo["subtitulo_font"])
+            self.label_entrada_producto_descripcion.config(
+                font=estilo["subtitulo_font"],
+                wraplength=max(int((ancho_disponible or 520) * 0.34), 180),
+            )
+            if estilo["mostrar_entrada_descripcion"]:
+                self.label_entrada_producto_descripcion.grid()
+            else:
+                self.label_entrada_producto_descripcion.grid_remove()
         if self._widget_existe(self.label_buscar_producto):
             self.label_buscar_producto.config(font=estilo["campo_label_font"])
         if self._widget_existe(self.label_cantidad_producto):
@@ -512,9 +551,9 @@ class PantallaCaja:
             self.entrada_cantidad.config(font=estilo["entrada_cantidad_font"])
         if self._widget_existe(self.boton_agregar_producto):
             self.boton_agregar_producto.config(
-                font=estilo["campo_label_font"],
-                padx=estilo["barra_boton_padx"] + 4,
-                pady=estilo["barra_boton_pady"] + 2,
+                font=estilo["boton_agregar_font"],
+                padx=estilo["barra_boton_padx"] + 1,
+                pady=estilo["barra_boton_pady"],
             )
 
         if self._widget_existe(self.encabezado_carrito):
@@ -531,7 +570,7 @@ class PantallaCaja:
         if self._widget_existe(self.lista_productos):
             self.lista_productos.config(font=estilo["lista_font"])
         if self._widget_existe(self.stock_bajo_frame):
-            self.stock_bajo_frame.config(width=estilo["stock_width"])
+            self.stock_bajo_frame.config(width=0)
 
         if self._widget_existe(self.aviso_licencia_frame):
             self.aviso_licencia_frame.config(padx=estilo["aviso_padx"], pady=estilo["aviso_pady"])
@@ -557,9 +596,15 @@ class PantallaCaja:
                     pady=estilo["forma_pady"],
                 )
         if self._widget_existe(self.label_pago):
-            self.label_pago.config(font=estilo["toggle_font"])
+            self.label_pago.config(font=estilo["pago_titulo_font"])
+        if self._widget_existe(self.label_pago_detalle):
+            self.label_pago_detalle.config(font=estilo["pago_detalle_font"])
         if self._widget_existe(self.entry_pago):
-            self.entry_pago.config(font=estilo["cliente_entry_font"], width=max(8, estilo["cliente_entry_dni_width"] - 8))
+            self.entry_pago.config(font=estilo["pago_entry_font"])
+            try:
+                self.entry_pago.pack_configure(ipady=estilo["pago_entry_ipady"])
+            except tk.TclError:
+                pass
         if self._widget_existe(self.boton_cliente_toggle):
             self.boton_cliente_toggle.config(
                 font=estilo["toggle_font"],
@@ -608,6 +653,9 @@ class PantallaCaja:
             )
 
         self._aplicar_layout_busqueda_producto(ancho_disponible)
+        self._aplicar_layout_panel_izquierdo(ancho_disponible, alto_disponible)
+        self._ajustar_columnas_stock_bajo(ancho_disponible)
+        self._aplicar_layout_pago(ancho_disponible)
 
     def _aplicar_layout_busqueda_producto(self, ancho_disponible=None):
         widgets = [
@@ -621,11 +669,6 @@ class PantallaCaja:
         if not all(self._widget_existe(widget) for widget in widgets):
             return
 
-        compacto = (
-            getattr(self, "_modo_compacto_general", "normal") != "normal"
-            or (ancho_disponible and int(ancho_disponible) < 1400)
-        )
-
         for widget in [
             self.label_buscar_producto,
             self.entrada_id,
@@ -635,18 +678,74 @@ class PantallaCaja:
         ]:
             widget.grid_forget()
 
+        ancho_angosto = bool(ancho_disponible and int(ancho_disponible) < 1180)
+        compacto = getattr(self, "_modo_compacto_general", "normal") == "ultra" or ancho_angosto
+
+        self.label_buscar_producto.grid(row=2, column=0, columnspan=5, sticky="w", pady=(0, 4))
+        self.entrada_id.grid(row=3, column=0, columnspan=5, sticky="ew", ipady=6)
+        self.label_cantidad_producto.grid(row=4, column=0, sticky="w", padx=(0, 8), pady=(8, 0))
+
         if compacto:
-            self.label_buscar_producto.grid(row=2, column=0, sticky="w", padx=(0, 8), pady=(0, 6))
-            self.entrada_id.grid(row=2, column=1, columnspan=4, sticky="ew", padx=(0, 0), ipady=6)
-            self.label_cantidad_producto.grid(row=4, column=0, sticky="w", padx=(0, 8))
-            self.entrada_cantidad.grid(row=4, column=1, sticky="w", padx=(0, 12), ipady=6)
-            self.boton_agregar_producto.grid(row=4, column=4, sticky="e")
+            self.entrada_cantidad.grid(row=4, column=1, columnspan=2, sticky="ew", padx=(0, 0), ipady=5, pady=(8, 0))
+            self.boton_agregar_producto.grid(row=5, column=0, columnspan=5, sticky="ew", pady=(8, 0))
         else:
-            self.label_buscar_producto.grid(row=2, column=0, sticky="w", padx=(0, 8))
-            self.entrada_id.grid(row=2, column=1, padx=(0, 20), sticky="ew", ipady=6)
-            self.label_cantidad_producto.grid(row=2, column=2, sticky="w", padx=(0, 8))
-            self.entrada_cantidad.grid(row=2, column=3, padx=(0, 20), ipady=6)
-            self.boton_agregar_producto.grid(row=2, column=4)
+            self.entrada_cantidad.grid(row=4, column=1, sticky="w", padx=(0, 10), ipady=5, pady=(8, 0))
+            self.boton_agregar_producto.grid(row=4, column=4, sticky="e", pady=(8, 0))
+
+    def _aplicar_layout_panel_izquierdo(self, ancho_disponible=None, alto_disponible=None):
+        widgets = [self.lista_y_stock_frame, self.carrito_frame, self.stock_bajo_frame]
+        if not all(self._widget_existe(widget) for widget in widgets):
+            return
+
+        apilado = (
+            getattr(self, "_modo_compacto_general", "normal") != "normal"
+            or (ancho_disponible and int(ancho_disponible) < 1380)
+            or (alto_disponible and int(alto_disponible) < 760)
+        )
+
+        self.carrito_frame.pack_forget()
+        self.stock_bajo_frame.pack_forget()
+
+        if apilado:
+            self.carrito_frame.pack(fill=tk.BOTH, expand=True)
+            self.stock_bajo_frame.pack(fill=tk.BOTH, expand=False, pady=(12, 0))
+            return
+
+        self.carrito_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.stock_bajo_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=False, padx=(15, 0))
+
+    def _ajustar_columnas_stock_bajo(self, ancho_disponible=None):
+        if not self._widget_existe(getattr(self, "tree_stock_bajo", None)):
+            return
+
+        modo = getattr(self, "_modo_compacto_general", "normal")
+        ancho_nombre = 220
+        if modo == "compacto":
+            ancho_nombre = 180
+        elif modo == "ultra":
+            ancho_nombre = 150
+
+        if ancho_disponible and int(ancho_disponible) < 1300:
+            ancho_nombre = min(ancho_nombre, 160)
+
+        self.tree_stock_bajo.column("ID", width=54, minwidth=48, anchor="center", stretch=False)
+        self.tree_stock_bajo.column("Nombre", width=ancho_nombre, minwidth=120, anchor="w", stretch=True)
+        self.tree_stock_bajo.column("Stock", width=90, minwidth=80, anchor="center", stretch=False)
+
+    def _aplicar_layout_pago(self, ancho_disponible=None):
+        if not self._widget_existe(self.fila_pago_frame):
+            return
+
+        pady_superior = (12, 0)
+        if getattr(self, "_modo_compacto_general", "normal") == "ultra":
+            pady_superior = (10, 0)
+        elif getattr(self, "_modo_compacto_general", "normal") == "compacto":
+            pady_superior = (11, 0)
+
+        try:
+            self.fila_pago_frame.pack_configure(fill=tk.X, pady=pady_superior)
+        except tk.TclError:
+            pass
 
 
     def _aplicar_compactacion_acciones(self, ancho_disponible=None, alto_disponible=None):
@@ -1238,68 +1337,71 @@ class PantallaCaja:
             self._ocultar_sugerencias()
 
     def crear_entrada_producto(self, frame):
-        tarjeta = self._crear_tarjeta(frame, pady=(0, 14))
+        tarjeta = self._crear_tarjeta(frame, pady=(0, 10))
         tarjeta.pack(**tarjeta._pack_config)
         self.tarjeta_entrada_producto = tarjeta
         sub_frame = tk.Frame(tarjeta, bg=self.color_tarjeta, padx=18, pady=16)
         sub_frame.pack(fill=tk.X)
+        sub_frame.grid_columnconfigure(0, weight=0)
         sub_frame.grid_columnconfigure(1, weight=1)
+        sub_frame.grid_columnconfigure(2, weight=0)
+        sub_frame.grid_columnconfigure(3, weight=0)
+        sub_frame.grid_columnconfigure(4, weight=0)
         self.entrada_producto_frame = sub_frame
 
         self.label_entrada_producto_titulo = tk.Label(
             sub_frame,
-            text="Agregar producto",
-            font=("Segoe UI", 16, "bold"),
+            text="Agregar rapido",
+            font=("Segoe UI", 14, "bold"),
             bg=self.color_tarjeta,
             fg=self.color_texto,
         )
         self.label_entrada_producto_titulo.grid(row=0, column=0, columnspan=5, sticky="w", pady=(0, 4))
-        tk.Label(
+        self.label_entrada_producto_descripcion = tk.Label(
             sub_frame,
-            text="Buscá por ID o nombre y cargá la cantidad antes de agregar al carrito.",
+            text="Busca por nombre o ID.",
             font=self.font_subtitulo,
             bg=self.color_tarjeta,
             fg=self.color_secundario,
-        ).grid(row=1, column=0, columnspan=5, sticky="w", pady=(0, 12))
+        )
+        self.label_entrada_producto_descripcion.grid(row=1, column=0, columnspan=5, sticky="w", pady=(0, 8))
 
         # --- ID o nombre del producto ---
-        self.label_buscar_producto = tk.Label(sub_frame, text="Buscar producto:", font=("Segoe UI", 13, "bold"), bg=self.color_tarjeta, fg=self.color_texto)
-        self.label_buscar_producto.grid(row=2, column=0, sticky="w", padx=(0, 8))
+        self.label_buscar_producto = tk.Label(sub_frame, text="Producto:", font=("Segoe UI", 12, "bold"), bg=self.color_tarjeta, fg=self.color_texto)
+        self.label_buscar_producto.grid(row=2, column=0, columnspan=5, sticky="w", pady=(0, 6))
 
         self.entrada_id = tk.Entry(sub_frame, font=self.font_busqueda, relief="solid", bd=2, width=34, bg="white")
         self.entrada_id.bind("<Down>", self._focus_lista_sugerencias)
         self.entrada_id.bind("<FocusOut>", self._on_focus_out_buscador)
-        self.entrada_id.grid(row=2, column=1, padx=(0, 20), sticky="ew", ipady=6)
+        self.entrada_id.grid(row=3, column=0, columnspan=5, sticky="ew", ipady=6)
         self.entrada_id.bind("<KeyRelease>", self.autocompletar_producto)
 
 
 
         # --- Cantidad ---
-        self.label_cantidad_producto = tk.Label(sub_frame, text="Cantidad:", font=("Segoe UI", 13, "bold"), bg=self.color_tarjeta, fg=self.color_texto)
-        self.label_cantidad_producto.grid(row=2, column=2, sticky="w", padx=(0, 8))
+        self.label_cantidad_producto = tk.Label(sub_frame, text="Cant.:", font=("Segoe UI", 12, "bold"), bg=self.color_tarjeta, fg=self.color_texto)
+        self.label_cantidad_producto.grid(row=4, column=0, sticky="w", padx=(0, 8), pady=(8, 0))
 
-        self.entrada_cantidad = tk.Entry(sub_frame, font=("Segoe UI", 15, "bold"), relief="solid", bd=2, width=8, bg="white")
-        self.entrada_cantidad.grid(row=2, column=3, padx=(0, 20), ipady=6)
-        self.entrada_cantidad.insert(0, "1")  # Valor por defecto: 1
+        self.entrada_cantidad = tk.Entry(sub_frame, font=("Segoe UI", 14, "bold"), relief="solid", bd=2, width=7, bg="white")
+        self.entrada_cantidad.grid(row=4, column=1, sticky="w", padx=(0, 10), ipady=5, pady=(8, 0))
+        self.entrada_cantidad.insert(0, "1")
 
         # --- Botón para agregar al carrito ---
         self.boton_agregar_producto = tk.Button(sub_frame, text="Agregar", command=self.agregar_producto,
-                                font=("Segoe UI", 13, "bold"), bg=self.color_exito, fg="white", relief="flat", padx=18, pady=10, bd=0, activebackground=self.color_exito_hover, activeforeground="white", cursor="hand2")
-        self.boton_agregar_producto.grid(row=2, column=4)
+                                font=("Segoe UI", 12, "bold"), bg=self.color_exito, fg="white", relief="flat", padx=12, pady=7, bd=0, activebackground=self.color_exito_hover, activeforeground="white", cursor="hand2")
+        self.boton_agregar_producto.grid(row=4, column=4, sticky="e", pady=(8, 0))
 
 
 
 
     def crear_lista_productos(self, frame):
-        # Frame que contiene carrito y stock bajo
-        lista_y_stock_frame = tk.Frame(frame, bg=self.color_fondo)
-        lista_y_stock_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
+        self.lista_y_stock_frame = tk.Frame(frame, bg=self.color_fondo)
+        self.lista_y_stock_frame.pack(fill=tk.BOTH, expand=True, pady=(0, 15))
 
-        # ----- COLUMNA IZQUIERDA: Carrito -----
-        carrito_frame = self._crear_tarjeta(lista_y_stock_frame, pady=0)
-        carrito_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.carrito_frame = self._crear_tarjeta(self.lista_y_stock_frame, pady=0)
+        self.carrito_frame.pack(fill=tk.BOTH, expand=True)
 
-        self.encabezado_carrito = tk.Frame(carrito_frame, bg=self.color_tarjeta, padx=16, pady=14)
+        self.encabezado_carrito = tk.Frame(self.carrito_frame, bg=self.color_tarjeta, padx=16, pady=14)
         self.encabezado_carrito.pack(fill=tk.X)
         self.label_carrito_titulo = tk.Label(
             self.encabezado_carrito,
@@ -1327,10 +1429,10 @@ class PantallaCaja:
         self.label_ayuda_carrito.pack(anchor="w", pady=(2, 0))
 
         # Listbox con borde visual limpio
-        lista_frame = tk.Frame(carrito_frame, bg=self.color_tarjeta, bd=0)
+        lista_frame = tk.Frame(self.carrito_frame, bg=self.color_tarjeta, bd=0)
         lista_frame.pack(fill=tk.BOTH, expand=True, padx=14, pady=(0, 14))
 
-        self.lista_productos = tk.Listbox(lista_frame, font=self.font_lista, height=15,
+        self.lista_productos = tk.Listbox(lista_frame, font=self.font_lista, height=1,
                                         bg="white", fg=self.color_texto, selectbackground="#dbeafe",
                                         selectforeground=self.color_texto,
                                         activestyle="none", relief="flat", bd=0)
@@ -1351,9 +1453,8 @@ class PantallaCaja:
             command=self.eliminar_producto_seleccionado,
         )
 
-        # ----- COLUMNA DERECHA: Stock bajo -----
-        self.stock_bajo_frame = tk.Frame(lista_y_stock_frame, bg=self.color_fondo, width=300)
-        self.stock_bajo_frame.pack(side=tk.LEFT, fill=tk.Y, padx=(15, 0))
+        self.stock_bajo_frame = tk.Frame(self.lista_y_stock_frame, bg=self.color_fondo)
+        self.stock_bajo_frame.pack(fill=tk.BOTH, expand=False, pady=(12, 0))
 
     def _seleccionar_producto_desde_evento_lista(self, event):
         if not self.carrito or not self._widget_existe(self.lista_productos):
@@ -1527,11 +1628,25 @@ class PantallaCaja:
 
         # Campo "Con cuánto paga"
         self.fila_pago_frame = tk.Frame(self.forma_frame, bg=self.color_tarjeta)
-        self.fila_pago_frame.pack(fill=tk.X, pady=(10, 0))
-        self.label_pago = tk.Label(self.fila_pago_frame, text="Pago:", font=self.font_pequena, bg=self.color_tarjeta, fg="#555")
+        self.fila_pago_frame.pack(fill=tk.X, pady=(12, 0))
+        self.label_pago = tk.Label(
+            self.fila_pago_frame,
+            text="Con cuanto paga",
+            font=("Segoe UI", 12, "bold"),
+            bg=self.color_tarjeta,
+            fg=self.color_texto,
+        )
         self.label_pago.pack(anchor="w")
-        self.entry_pago = tk.Entry(self.fila_pago_frame, font=("Segoe UI", 16, "bold"), relief="solid", bd=1, bg="#f8fafc")
-        self.entry_pago.pack(fill=tk.X, pady=(4, 0), ipady=6)
+        self.label_pago_detalle = tk.Label(
+            self.fila_pago_frame,
+            text="Se usa solo para ventas en efectivo.",
+            font=("Segoe UI", 9),
+            bg=self.color_tarjeta,
+            fg=self.color_secundario,
+        )
+        self.label_pago_detalle.pack(anchor="w", pady=(2, 0))
+        self.entry_pago = tk.Entry(self.fila_pago_frame, font=("Segoe UI", 19, "bold"), relief="solid", bd=1, bg="#f8fafc")
+        self.entry_pago.pack(fill=tk.X, pady=(8, 0), ipady=8)
         self.entry_pago.bind("<KeyRelease>", self.actualizar_vuelto)
 
         self.cliente_toggle_frame = tk.Frame(frame, bg=self.color_fondo)
@@ -1694,8 +1809,7 @@ class PantallaCaja:
         self.entrada_cantidad.insert(0, self._cantidad_por_defecto_producto(producto))
 
     def _texto_sugerencia_producto(self, producto):
-        stock_txt = formatear_cantidad(producto.get("stock_actual", 0), producto=producto, con_unidad=True)
-        return f"{producto['id']} - {producto['nombre']} ({describir_precio_producto(producto)} | stock {stock_txt})"
+        return str(producto.get("nombre", "")).strip()
 
     def _texto_resumen_cantidades_carrito(self):
         unidades = 0
@@ -1727,49 +1841,73 @@ class PantallaCaja:
     def _resolver_producto_desde_entrada(self):
         texto = self.entrada_id.get().strip()
         if not texto:
+            self._producto_sugerido_actual = None
             return None
 
-        if self.lista_sugerencias.curselection():
-            seleccion = self.lista_sugerencias.get(self.lista_sugerencias.curselection()[0])
-            prod_id = self._extraer_id_desde_texto_producto(seleccion)
-            if prod_id is not None:
-                return buscar_producto(prod_id)
+        if self.lista_sugerencias and self.lista_sugerencias.curselection():
+            indice = self.lista_sugerencias.curselection()[0]
+            if indice < len(self._sugerencias_producto_actuales):
+                producto = self._sugerencias_producto_actuales[indice]
+                self._producto_sugerido_actual = producto
+                return buscar_producto(producto["id"]) or producto
 
         prod_id = self._extraer_id_desde_texto_producto(texto)
         if prod_id is not None:
             producto = buscar_producto(prod_id)
             if producto:
+                self._producto_sugerido_actual = producto
                 return producto
+
+        texto_normalizado = texto.lower()
+        producto_sugerido = getattr(self, "_producto_sugerido_actual", None)
+        if producto_sugerido and str(producto_sugerido.get("nombre", "")).strip().lower() == texto_normalizado:
+            return buscar_producto(producto_sugerido["id"]) or producto_sugerido
 
         coincidencias = self._buscar_coincidencias_producto(texto)
-        texto_normalizado = texto.lower()
-        for producto in coincidencias:
-            if str(producto.get("nombre", "")).strip().lower() == texto_normalizado:
-                return producto
+        coincidencias_exactas = [
+            producto
+            for producto in coincidencias
+            if str(producto.get("nombre", "")).strip().lower() == texto_normalizado
+        ]
+        if len(coincidencias_exactas) == 1:
+            self._producto_sugerido_actual = coincidencias_exactas[0]
+            return coincidencias_exactas[0]
 
         if len(coincidencias) == 1:
+            self._producto_sugerido_actual = coincidencias[0]
             return coincidencias[0]
 
         return None
 
     def _limpiar_busqueda_producto(self):
         self.entrada_id.delete(0, tk.END)
+        self._sugerencias_producto_actuales = []
+        self._producto_sugerido_actual = None
         self._ocultar_sugerencias()
 
     def autocompletar_producto(self, event=None):
         texto = self.entrada_id.get().strip()
         if not texto:
+            self._sugerencias_producto_actuales = []
+            self._producto_sugerido_actual = None
             self._ocultar_sugerencias()
             return
 
+        if not getattr(self, "_producto_sugerido_actual", None) or (
+            str(self._producto_sugerido_actual.get("nombre", "")).strip().lower() != texto.lower()
+        ):
+            self._producto_sugerido_actual = None
+
         sugerencias = self._buscar_coincidencias_producto(texto)
         if not sugerencias:
+            self._sugerencias_producto_actuales = []
             self._ocultar_sugerencias()
             return
 
         if self.popup_sugerencias is None or not self.popup_sugerencias.winfo_exists():
             self._crear_popup_sugerencias()
 
+        self._sugerencias_producto_actuales = sugerencias
         self.lista_sugerencias.delete(0, tk.END)
         for prod in sugerencias:
             self.lista_sugerencias.insert(tk.END, self._texto_sugerencia_producto(prod))
@@ -1782,14 +1920,15 @@ class PantallaCaja:
         if not self.lista_sugerencias or not self.lista_sugerencias.curselection():
             return
 
-        seleccion = self.lista_sugerencias.get(self.lista_sugerencias.curselection()[0])
+        indice = self.lista_sugerencias.curselection()[0]
+        if indice >= len(self._sugerencias_producto_actuales):
+            return
+
+        producto = self._sugerencias_producto_actuales[indice]
+        seleccion = self._texto_sugerencia_producto(producto)
         self.entrada_id.delete(0, tk.END)
         self.entrada_id.insert(0, seleccion)
-
-        producto = None
-        prod_id = self._extraer_id_desde_texto_producto(seleccion)
-        if prod_id is not None:
-            producto = buscar_producto(prod_id)
+        self._producto_sugerido_actual = producto
 
         self._restablecer_cantidad_producto(producto)
         self._ocultar_sugerencias()
@@ -2211,15 +2350,17 @@ class PantallaCaja:
         stock_frame = tk.LabelFrame(self.stock_bajo_frame, text="Stock bajo",
                             bg=self.color_tarjeta, fg=self.color_texto, font=self.font_labels, bd=1, relief="solid")
         stock_frame.pack(fill=tk.BOTH, expand=True)
+        self.stock_card_frame = stock_frame
 
-        self.tree_stock_bajo = ttk.Treeview(stock_frame, columns=("ID", "Nombre", "Stock"), show="headings", height=10, style="Caja.Treeview")
+        self.tree_stock_bajo = ttk.Treeview(stock_frame, columns=("ID", "Nombre", "Stock"), show="headings", height=1, style="Caja.Treeview")
         self.tree_stock_bajo.heading("ID", text="ID")
         self.tree_stock_bajo.heading("Nombre", text="Nombre")
         self.tree_stock_bajo.heading("Stock", text="Stock")
-        self.tree_stock_bajo.column("ID", width=50, anchor="center")
-        self.tree_stock_bajo.column("Nombre", width=150, anchor="w")
+        self.tree_stock_bajo.column("ID", width=54, anchor="center")
+        self.tree_stock_bajo.column("Nombre", width=180, anchor="w")
         self.tree_stock_bajo.column("Stock", width=90, anchor="center")
         self.tree_stock_bajo.pack(fill=tk.BOTH, expand=True)
+        self._ajustar_columnas_stock_bajo()
 
         productos_bajo = listar_productos_con_stock_bajo()[:10]
         for p in productos_bajo:
@@ -2250,7 +2391,7 @@ class PantallaCaja:
 
         if forma == "efectivo":
             # Mostrar campo de pago y vuelto
-            self.fila_pago_frame.pack(fill=tk.X, pady=(10, 0))
+            self.fila_pago_frame.pack(fill=tk.X, pady=(12, 0))
             self.entry_pago.configure(state="normal")
             if not self.vuelto_label.winfo_ismapped():
                 self.vuelto_label.pack(anchor="w")

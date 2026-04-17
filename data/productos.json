@@ -17,11 +17,11 @@
     },
     {
         "id": 3,
-        "nombre": "tete",
-        "precio": 120.0,
-        "stock_actual": 6,
-        "stock_minimo": 10,
-        "tipo_venta": "unidad"
+        "nombre": "Bondiola",
+        "precio": 12000.0,
+        "stock_actual": 5.0,
+        "stock_minimo": 10.0,
+        "tipo_venta": "kilo"
     },
     {
         "id": 6,

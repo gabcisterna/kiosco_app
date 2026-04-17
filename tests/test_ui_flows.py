@@ -100,7 +100,7 @@ class UIFlowTests(unittest.TestCase):
         cerrar_sesion_mock.assert_called_once_with()
         pantalla.ir_a_login.assert_called_once_with(pantalla.master)
 
-    def test_resolver_producto_desde_entrada_acepta_nombre_e_id_en_sugerencia(self):
+    def test_resolver_producto_desde_entrada_acepta_nombre_e_sugerencia_por_nombre(self):
         with isolated_data_env():
             guardar_productos(
                 [
@@ -124,12 +124,23 @@ class UIFlowTests(unittest.TestCase):
             pantalla = PantallaCaja.__new__(PantallaCaja)
             pantalla.entrada_id = DummyEntry("Yerba Suave")
             pantalla.lista_sugerencias = DummyListbox()
+            pantalla._producto_sugerido_actual = None
+            pantalla._sugerencias_producto_actuales = []
 
             producto = PantallaCaja._resolver_producto_desde_entrada(pantalla)
             self.assertEqual(producto["id"], 25)
 
-            pantalla.entrada_id = DummyEntry("10 - Coca Cola")
-            pantalla.lista_sugerencias = DummyListbox(value="10 - Coca Cola", selection=(0,))
+            pantalla.entrada_id = DummyEntry("Coca Cola")
+            pantalla.lista_sugerencias = DummyListbox(value="Coca Cola", selection=(0,))
+            pantalla._sugerencias_producto_actuales = [
+                {
+                    "id": 10,
+                    "nombre": "Coca Cola",
+                    "precio": 1200.0,
+                    "stock_actual": 8,
+                    "stock_minimo": 1,
+                }
+            ]
 
             producto = PantallaCaja._resolver_producto_desde_entrada(pantalla)
             self.assertEqual(producto["id"], 10)
